@@ -1,0 +1,57 @@
+---
+title: "The one-in-1,000-year tornado and its frequency in 1,000 years"
+output: html_document
+author: Georg Veh
+date: "05 October 2018"
+---
+
+```{r , include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We simulate a time series of 1,000 years. For each year, we
+determine independently with a random number generator whether
+a 1,000-year tornado was observed or not:
+
+
+```{r , echo=TRUE}
+
+# Generate 1,000 years of random uniform numbers
+y <- runif(1000)
+
+# Count only those numbers >=0.999 (or <0.001)
+(obs <- sum(y >= 0.999))
+
+```
+
+Re-run this code several times to confirm differing tornado counts;
+set.seed() returns the same random numbers for a given
+argument.
+
+We can now create many time series as virtual experiments, and
+plot the number of tornado counts from each series to learn more
+about their *distribution*:
+
+```{r, echo=TRUE}
+
+# Create 1,000 time series, each with 1,000 years
+# and store the result column-wise in a matrix
+y_long <- matrix(runif(1e6), ncol = 1000)
+# Compute the column sums (1,000-year tornadoes)
+obs_long <- colSums(y_long >= 0.999)
+
+```
+
+And here the code how to plot this:
+
+```{r, echo = T}
+
+# Plot tornado counts
+plot(table(obs_long), lwd = 10,
+main = "Simulated 1,000-year Tornadoes",
+col = "hotpink",
+xlab = "Tornado count",
+ylab = "Frequency",
+cex.lab = 1.5, cex.main = 1.5)
+
+```
