@@ -57,3 +57,17 @@ cex.lab = 1.5, cex.main = 1.5)
 ```
 
 Now do some changes to see how Github manages this
+Maybe a barplot with lightblue bars?
+
+```{r, echo = T}
+
+# Plot tornado counts
+barplot(table(obs_long), lwd = 0.8, las = 1,
+main = "Simulated 1,000-year Tornadoes",
+col = "lightblue",
+xlab = "Tornado count",
+ylab = "Frequency",
+lend = 1,
+cex.lab = 0.8, cex.main = 0.8)
+
+```
