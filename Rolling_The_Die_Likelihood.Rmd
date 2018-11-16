@@ -1,0 +1,66 @@
+---
+title: "Rolling_The_Die"
+author: "Lisa Berghäuser, Melanie Fischer"
+date: "14 November 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Task 
+include exact task here 
+
+```{r}
+SumDice <- 17
+#create a vector with the min and max times of rolling the dice
+Times <- c(3:SumDice)
+##Create a Resultsvector for the loop
+Resultvec <- array(dim = length(Times))
+
+rm("Resultmatrix")
+
+for (j in c(1:1e4)){
+  
+  for (i in Times){
+    SumDie <- sum(sample(1:6, i, replace = T))
+    Resultvec[match(x = i, table = Times)] <- SumDie
+  }
+  
+  if( exists( "Resultmatrix" ) ){
+   Resultmatrix <- cbind(Resultmatrix, Resultvec)
+  }else{
+    Resultmatrix <- Resultvec
+  }
+}
+
+
+```
+
+## Including Histograms
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+
+par(mfrow=c(3,5))
+for(Zeile in c(1:(dim(Resultmatrix)[1]))){
+  TT <- table(Resultmatrix[Zeile,])
+  TTdf <- as.data.frame(TT)
+  RDdf <- TTdf$Var1[match(x = max(TT), table = TT)]
+  rolleddice <- as.numeric(levels(RDdf))[RDdf]
+  plot(TT,
+       main = paste("Rolled", Times[Zeile], " times"), 
+       col = "hotpink",
+       xlab = paste("Sum of dice rolled is ", rolleddice)
+  )
+  
+  index <- match(x = rolleddice, table = TT)
+
+  abline(v = rolleddice, col = "pink", lwd = 6)
+
+}
+
+```
+
