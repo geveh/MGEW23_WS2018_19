@@ -8,9 +8,10 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+## Basic Considerations for Trevor's Dice Problem
+A basic consideration for the simulation of number of dice rolls needed to attain an eye sum of 17 is that the lowest possible number of dice rolls is 3 (6 eyes + 6 eyes + 5 eyes) and the highest is 17 (with each of the 17 dice rolls yielding 1 eye). Therefore, simulated experiments of 3 to 17 dice rolls can be analysed in order to gain information on the likelihood distribution of attaining a result of exactly 17 eyes with a given number of dice rolls. At the core of the simulated dice roll experiments lies the function sample(1:6, n, replace=TRUE) which creates a given number (n) of integer values of 1 to 6. 
 
-## Task 
-include exact task here 
+## Coding Solution 1
 
 ```{r}
 SumDice <- 17
@@ -38,9 +39,8 @@ for (j in c(1:1e4)){
 
 ```
 
-## Including Histograms
+### Histograms for Coding Solution 1
 
-You can also embed plots, for example:
 
 ```{r, echo=FALSE}
 
@@ -64,3 +64,38 @@ for(Zeile in c(1:(dim(Resultmatrix)[1]))){
 
 ```
 
+## Coding Solution 2
+
+```{r Code for }
+# Creating an empty vector into which the results of the calculation in the for loop are subsequently written
+resultsVector <- c()
+
+# Creating a for loop with the variable "diceRolls", which takes the interger values of 3 to 17 (potential number of dice rolled to attain a eye sum of 17, see above)
+for (diceRolls in 3:17) { 
+  
+# Creating a matrix with its number of collums representing the number of simulated dice rolls. The matrix is filled with integer values of 1 to 6 (= simulated results of rolling a die) with the function sample().
+  m <- matrix(c(sample(1:6, 100000*diceRolls, replace=TRUE)), 
+                            ncol = diceRolls, byrow = TRUE) 
+  
+# The row sums of each matrix are calculated (function rowSums()). Then the number of calculated ro sums which equal 17 (== 17) are calculated with the sum()-function. 
+  res <- sum(rowSums(m) == 17) 
+  
+# The results of the calculation are added to the "resultsVector"-vector
+  resultsVector <- c(resultsVector, res)
+  
+# Generating a message which informs on the number of dice rolls and the occurrence frequency of exactly 17 eyes as their eye count.                 
+  message(" We roll the die ", diceRolls, " times and obtained ", 
+          res, " out of 100000 experiments exactly 17 eyes.")
+}
+
+
+```
+
+### Histogram for Coding Solution 2 
+
+In order to illustrate the frequency distribution of dice rolls needed to attain an eye count of 17, the afore-shown results are plotted into one histogram. This is implemented by using the plot() command, setting an integer sequence of the values 3 to 17 (i.e. the number of dice rolls) as x-axis and the resulting vector containing the frequencies of dice rolls with exactly 17 eye sums in a simulated 100,000 experiments as y-axis. The histogram clearly illustrates that rolling five dice yields the greatest frequency of exactly 17 eye counts. This finding is consistent with the known empirical value of 3.5 eyes per rolled die, as 17/3.5 = 4.9.   
+
+```{r Plot}
+plot(x = c(3:17), y = resultsVector, xlab = "Number of rolled dice", ylab = "Frequency", type = "h", main = "How many dice do you have to roll to obtain exactly 17 eyes?", col = "red", lwd = 5)
+
+```
