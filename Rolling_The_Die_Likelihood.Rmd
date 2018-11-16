@@ -52,7 +52,8 @@ for( Zeile in c( 1:( dim( Resultmatrix)[1] ) ) ){
   plot(Resulttable,
        main = paste( "Rolled", Times[Zeile], " times" ), 
        col = "hotpink",
-       xlab = paste( "Most rolled sum:", rolleddice )
+       xlab = paste( "Most rolled sum:", rolleddice ),
+       ylab = "Frequency"
   )
   
   index <- match( x = rolleddice, table = Resulttable )
