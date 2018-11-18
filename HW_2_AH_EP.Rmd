@@ -1,0 +1,120 @@
+---
+title: "Homework_2_AH_EP"
+author: "Andrea Hemmelmann  - Eric Parra"
+date: "18 de noviembre de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Homework 2
+
+Tsunami scientist Trevor rolls some dice and tells you that the added result is 17. How many dice did Trevor roll? Write some R code to find this out!
+
+## Results
+
+We know that the sum of the dice thrown is 17. Therefore, the minimum amount of dice needed to achieve that amount is 3 (6, 6, 5) and the maximum amount of dice is 17 (assuming that all the dice give as result 1).
+
+Based on the above, we have performed the simulation of 100.000 rolls for each possible number of dice (In this exercise, we avoid using a loop to perform the simulations).
+
+```{r }
+n <- 100000
+dice_3 <- replicate(n, (sum(sample(1:6, 3, replace = TRUE))))
+dice_4 <- replicate(n, (sum(sample(1:6, 4, replace = TRUE))))
+dice_5 <- replicate(n, (sum(sample(1:6, 5, replace = TRUE))))
+dice_6 <- replicate(n, (sum(sample(1:6, 6, replace = TRUE))))
+dice_7 <- replicate(n, (sum(sample(1:6, 7, replace = TRUE))))
+dice_8 <- replicate(n, (sum(sample(1:6, 8, replace = TRUE))))
+dice_9 <- replicate(n, (sum(sample(1:6, 9, replace = TRUE))))
+dice_10 <- replicate(n, (sum(sample(1:6, 10, replace = TRUE))))
+dice_11 <- replicate(n, (sum(sample(1:6, 11, replace = TRUE))))
+dice_12 <- replicate(n, (sum(sample(1:6, 12, replace = TRUE))))
+dice_13 <- replicate(n, (sum(sample(1:6, 13, replace = TRUE))))
+dice_14 <- replicate(n, (sum(sample(1:6, 14, replace = TRUE))))
+dice_15 <- replicate(n, (sum(sample(1:6, 15, replace = TRUE))))
+dice_16 <- replicate(n, (sum(sample(1:6, 16, replace = TRUE))))
+dice_17 <- replicate(n, (sum(sample(1:6, 17, replace = TRUE))))
+
+```
+
+Then, we counted the number of roll in which the total sum was 17.
+
+```{r}
+count_dice_3 <- length(which(dice_3 == 17))
+count_dice_4 <- length(which(dice_4 == 17))
+count_dice_5 <- length(which(dice_5 == 17))
+count_dice_6 <- length(which(dice_6 == 17))
+count_dice_7 <- length(which(dice_7 == 17))
+count_dice_8 <- length(which(dice_8 == 17))
+count_dice_9 <- length(which(dice_9 == 17))
+count_dice_10 <- length(which(dice_10 == 17))
+count_dice_11 <- length(which(dice_11 == 17))
+count_dice_12 <- length(which(dice_12 == 17))
+count_dice_13 <- length(which(dice_13 == 17))
+count_dice_14 <- length(which(dice_14 == 17))
+count_dice_15 <- length(which(dice_15 == 17))
+count_dice_16 <- length(which(dice_16 == 17))
+count_dice_17 <- length(which(dice_17 == 17))
+
+count_dice_3 
+count_dice_4 
+count_dice_5 
+count_dice_6 
+count_dice_7 
+count_dice_8
+count_dice_9 
+count_dice_10 
+count_dice_11
+count_dice_12 
+count_dice_13 
+count_dice_14
+count_dice_15
+count_dice_16 
+count_dice_17
+
+```
+
+Finally, we obtained the probability of getting as a result 17 for each number of possible dice.
+
+```{r}
+
+p_dice_3  <- count_dice_3/n
+p_dice_4  <- count_dice_4/n
+p_dice_5  <- count_dice_5/n
+p_dice_6  <- count_dice_6/n
+p_dice_7  <- count_dice_7/n
+p_dice_8  <- count_dice_8/n
+p_dice_9  <- count_dice_9/n
+p_dice_10 <- count_dice_10/n
+p_dice_11 <- count_dice_11/n
+p_dice_12 <- count_dice_12/n
+p_dice_13 <- count_dice_13/n
+p_dice_14 <- count_dice_14/n
+p_dice_15 <- count_dice_15/n
+p_dice_16 <- count_dice_16/n
+p_dice_17 <- count_dice_17/n
+
+p_dice_3
+p_dice_4
+p_dice_5
+p_dice_6
+p_dice_7
+p_dice_8
+p_dice_9
+p_dice_10
+p_dice_11
+p_dice_12
+p_dice_13
+p_dice_14
+p_dice_15
+p_dice_16
+p_dice_17
+
+```
+
+As you can see, the results show that the most probable amount of dice rolled to get a sum of 17 is 5 dice. 
+
+Finally, it draws our attention that from the simulation of the roll of 12 dice, the value 17 was not obtained, although we simulated 100.000 rolls.
+
