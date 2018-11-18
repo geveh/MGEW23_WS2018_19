@@ -1,0 +1,111 @@
+---
+title: "Trevor's Dice Problem"
+author: "Gwendolin Lüdtke, Sina Spors"
+date: "13 November 2018"
+output:
+  html_document:
+    highlight: textmate
+    code_folding: show
+    theme: spacelab #cerulean, journal, flatly, darkly, readable, spacelab, united, cosmo, lumen, paper, sandstone,                       simplex, and yet
+    toc: true #add table of contents, possible to modify toc_depth: 1-3
+    toc_float: #floating table of contents will always be visible even when the document is scrolled
+      collapsed: false #controls whether the TOC appears with only the top-level (e.g., H2) headers. If collapsed                            initially, the TOC is automatically expanded inline when necessary
+      smooth_scroll: true #controls whether page scrolls are animated when TOC items are navigated to via mouse                                 clicks
+      
+#Alternative: html_notebook
+---
+
+<style>
+body {
+text-align: justify} 
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+*Tsunami scientist Trevor rolls some dice and tells you that the added result is 17. How many dice did Trevor roll?*
+
+The problem stated above deals with the issue of likelihood. To solve the problem of Trevor, a simulation of rolling a varying number of dice should be carried out.
+
+We can solve Trevor's dice problem in several ways. Here you can see a possible approach: 
+
+## Creating New Variables
+
+First of all, in order to create a more flexible code, variables are declared and initialized for the minimum and maximum number of dice, the given sum of a dice roll as well as for the number of experiments. The number of the experiments should be set to a high value to ensure a high reliability. Moreover, a vector of the length ```n``` containing only ```NA``` values is created by using the ```rep``` function. In the following, this vector serves as a storage location for the calculated values (number of dice rolling so that the added result is 17). The size of the vector is set to ```n``` to provide enough entries and the vector is filled with NA's to not falsify the final results.
+
+
+```{r}
+min_dice <- 3 #Minimum number of dice for rolling the specified sum 
+max_dice <- 17 #Maximum number of dice for rolling the specified sum
+total_value <- 17 #Specified sum of a dice roll
+n <- 100000 #Number of experiments
+x <- rep(NA,n) #Vector for storing calculated values  
+```
+
+## Using Loops for the Simulation
+
+After the declaration and initialization of the variables, nested ```for-loops``` are used to simulate the repetition of throwing 3 to 17 dice a certain number of times. The first loop will be repeated ```n```-times to ensure a high number of experiments. The second, nested loop runs, for our example, from ```i = 3``` to ```i = 17```. Running through the loop, throwing of ```i``` dice is simulated. Within this loop, the ```sample``` function creates randomly values between 1 and 6 with a varying number of dice. This simulates rolling ```i``` six-sided dice. Due to the setting ```replace=TRUE``` the throwing of the dice is with replacement so that more than six dice can be used. It should be noted that the number of eyes on the dice must be added together for answering the question above. This can be achieved by the ```sum``` function that calculates the sum. 
+
+
+By using an ```if statement``` the number of dice ```i``` is written into the vector ```x``` every time when the sum is equal to 17. The definition of the position in the vector (```i+y```) prevents overwriting of the content as each ```i+y``` position can only be assigned once in the simulation.
+
+
+```{r}
+#Repeat this lopp n-times
+for (y in 1:n) {
+  
+  #Loop for the number of dice i 
+  for (i in min_dice:max_dice) {
+      
+       s <- sum(sample(1:6,i, replace = T)) #Calculate the sum of the dice roll
+    
+       if (s == total_value){ #Write the number of dice in vector x if the sum of the dice roll equals to 17
+          x[i+y] <- i 
+        }
+    }
+}
+```
+
+
+## Creating a Plot
+
+For the illustration of the results, a histogram can be created by using ```hist```. By defining the axis boundaries, a precise view of the concrete value range of the experiment can be created. 
+
+
+```{r}
+hist(x,
+     main = "Trevor's Dice Problem",
+     xlab = "Number of dice",
+     ylab = "Frequency",
+     col  = "blue",
+     xlim = c(3,10),
+     freq = TRUE) #Frequencies are plotted
+
+box()
+```
+
+The histogram could also be a representation of probability densities instead of frequencies. If ```freq = FALSE```, probability densities are plotted. So you can see how likely it is that an interval of values of the x-axis occurs. The histogram shows that it is most likely to roll a 17 when using 5 dice. With 6 or more dice it is noticeable that it is increasingly unlikely to roll a 17. 
+
+
+```{r}
+hist(x,
+     main = "Trevor's Dice Problem",
+     xlab = "Number of dice",
+     ylab = "Probability density",
+     col  = "blue",
+     xlim = c(3,10),
+     freq = FALSE) #Probability densities are plotted
+
+#Plot density function over the histogram (normal distribution)
+m <- mean(x, na.rm = TRUE) #na.rm = TRUE: NA values should be stripped before the computation proceeds
+sd <-  sd(x, na.rm = TRUE) 
+curve(dnorm(x,m,sd),add=TRUE,lwd=3, col = "red") 
+
+box()
+```
+
+
+
