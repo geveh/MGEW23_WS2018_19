@@ -1,0 +1,37 @@
+---
+title: "Likelihood Dices"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r cars}
+result_dice <- 12 #Desired result of dices
+
+n <- 10000 # Nr of experiments
+min_dice <- ceiling(result_dice / 6) # min Nr of dice
+Delta_dice <- (result_dice - min_dice)+1 #amount of dice needed/difference between max and min
+
+menge <- rep(0,Delta_dice) #Definition of Vector "Menge" in size of possible events (Delta_dice)
+for (i in min_dice:result_dice) {  #for loop from min Nr of dices to max Nr of dices
+  vec <- sample(1:6, n * i, replace = TRUE) # Definitions of Vector with random Nr in range of 1 to 6 
+  mat <- matrix(data = vec, nrow = n, ncol = i, byrow = FALSE) #Vector converted into matrix
+  menge[i-2] <- sum(rowSums(mat) == result_dice) #calculates sum of every row in matrix, compares it to desires result
+}
+#returnValue(min_dice) #Test Line
+#returnValue(Delta_dice) #Test Line
+
+
+
+# Plot
+x <- min_dice:result_dice
+plot(x, menge, type = "h", col="chocolate", lwd=10, ## Werte für X,Y-
+     xlim = c(min_dice,result_dice) ,
+     main = "Likelihood of Dices", ## Diagramm-Titel
+     xlab = "Number of Dices", ## X-Achsen Titel
+     ylab = "Likelihood", ## Y-Achsen Titel
+     cex.lab = 1.5, cex.main = 1.5)
+
+```
+
