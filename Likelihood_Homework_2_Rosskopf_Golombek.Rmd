@@ -1,0 +1,117 @@
+---
+title: "Likelihood"
+author: "Nina Golombek und Martina Rosskopf"
+date: "19 11 2018"
+output: pdf_document
+---
+## Task:
+
+Tsunami scientist Trevor rolls some dice and tells you that the added result is 17. 
+Think of an example that applies this problem to natural hazards!
+
+The exercise for this week was to write some R code to find out how many times someone would have to roll a dice to get 17 as
+a result of al dices.
+
+First we discussed the different possibilties, where the conclusion was, that three is the minimum amount of dices you to do
+for a sum of 17 (6+6+5). The maximum amount would be 17 times (each dice roll with 1).
+
+Now to figure out the likelihood distribution of the dice sum 17, we simulated an experiment, where we use the possible 
+amounts of dice rolls between 3 and 17.  
+
+
+```{r}
+
+sum(sample(1:6, 3, replace = TRUE))   # The sample function includes only whole numbers 
+sum(sample(1:6, 4, replace = TRUE))   # Here: between 1-6 for a set number of dices (between 3-17)
+sum(sample(1:6, 5, replace = TRUE))
+sum(sample(1:6, 6, replace = TRUE))
+sum(sample(1:6, 7, replace = TRUE))
+sum(sample(1:6, 8, replace = TRUE))
+sum(sample(1:6, 9, replace = TRUE))
+sum(sample(1:6, 10, replace = TRUE))
+sum(sample(1:6, 11, replace = TRUE))
+sum(sample(1:6, 12, replace = TRUE))
+sum(sample(1:6, 13, replace = TRUE))
+sum(sample(1:6, 14, replace = TRUE))
+sum(sample(1:6, 15, replace = TRUE))
+sum(sample(1:6, 16, replace = TRUE))
+sum(sample(1:6, 17, replace = TRUE))
+
+```
+
+### Note:
+
+The statistical expectation for each dice is 3.5
+Thus, in order to reach ~17, five dices are most likely (5* 3.5 = 17.5 --> closest to 17)
+
+## Possible solution
+
+For the following solution we set a number n, which sets the amount of experiments we do for each possible dice roll (from 
+3 to 17).
+In the resolution vector *resvec* we write the solution of how many times the sum was 17 for each roll. In the row *0* we 
+have the result for *dice roll=3* and in row *15* the result for *dice roll=15*.
+
+```{r}
+n <- 10000
+resvec <- rep(0,15)
+
+```
+
+In the following loops we go through the possiblies of dice rolls. First we create a vector with n times i rows, where i 
+is the amount of dices. The random possible values of the vector are between 1 and 6. This vector we then write into a 
+matrix which has i columns and n rows. 
+We then build the sums over each row of the matrix. If the sum is then 17 we add one to the specific row of the *resvec*. 
+```{r}
+# loop to go through possible numbers of dices
+for (i in 3:17) {
+  # getting a vector of random numbers between 1 to 6
+  vec <- sample(1:6, n * i, replace = TRUE)
+  # transform vector to a matrix, amount of coloums equal to number of dices i
+  mat <- matrix(vec, ncol = i)
+  # loop to go through all rows of matrix
+  for (j in 1:n){
+    # if sum of a row is 17 then put the counter +1
+    if (sum(mat[j,]) == 17){
+      resvec[i-2] <- resvec[i-2]+1
+    }
+  }
+}
+```
+The last loop can also be written in one line. With this line we first get a vector with the sums of each row, where we 
+then ask if the sums of the rows are 17. The vector will then consist of TRUE and FALSE values. Calculating the sum over 
+this vector gives us how many times the sum was 17, because TRUE is 1 and FALSE is 0. This result will then be written 
+into our *resvec*.
+```{r}
+# last loop can also be calculated by: 
+  resvec[i-2] <- sum(rowSums(mat) == 17)
+```
+Last we are plotting a graph out of our results. Here x gives us the number of dices (between 3 to 17) and y how many 
+runs we had, where the sum was 17. 
+```{r}
+## Plot
+x <- 3:17      # set x values
+plot(x,resvec, type = "h", col="chocolate", lwd=7,
+     xlim=c(3,17),
+     main = "Likelihood of dices",                        # Diagram Title
+     xlab = "Number of dice rolls",                       # X-Axis Title
+     ylab = 'Amount of runs with sum = 17',               # Y-Axis Title
+     cex.lab = 1.5, cex.main = 1.5)                       # Font size of Titles
+
+```
+
+With this Plot we can see that it is most likely to get the eye sum 17 if you roll the dice 5 times. This fits to the 
+known value, that for one dice the assumed eyes of the dice are 3.5. Therefore 5 dice rolls would give us 17.5 for the 
+sum of the dices. 
+
+## Example that applies this problem to natural hazards
+
+Probability of a 1000-year Event in 6 different countries 
+
+1: Germany
+2: USA
+3: Indonesia
+4: Japan
+5: Argentina
+6: New Zealand
+
+--> Probability for one of these events is always 1/1000 for each country.
