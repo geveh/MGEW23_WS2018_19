@@ -1,0 +1,163 @@
+---
+title: "homework_3_Bayes"
+author: "Nora Krebs and Rebecca Amberger"
+date: "20 November 2018"
+output: html_document
+---
+
+## Task of the week
+
+Assume that lightning strike causes wildfires with a probability of
+1/1000. You observe a wildfire and an eyewitness claims that it was
+lit by lightning. What is the probability that this is correct, knowing
+that eyewitness reports are reliable 80% of the time?
+
+Prepare a R Markdown-based *.html file containing documented R code on the eyewitness problem.
+
+
+## Approach of the solution
+
+In the following section we want to share our thoughts and solution attemptes that led us to the final solution of the problem.
+
+
+### Analyzing the problem
+
+Considering the given problem, we know, that we have to focus on the conditioned probability, of the case that the person says the truth, given that there has been a lightening in advance.
+
+Now, if the events are declared in the following way:
+
+T = person says the truth
+L = there has been a lightening
+
+...the conditioned probability can be expressed in the followning way:
+
+P (T I L) ****question: How can we type the separation bar?!
+
+If we calculate the problem with Bay큦 theorem, we can set up the formula in the following way: 
+
+P (T I L) = (P(L I T) * P(T)) / P(L)  ****question: is there a better way to insert formula?!
+
+The given probabilities are: 
+
+P(T) = 0.8
+P(L) = 1/1000
+
+
+### First attempt: Inserting all input into Baye큦 theorem
+
+To solve the equation of Baye, we are missing only one term:
+
+P(L I T)
+
+In this case we are looking for the probability that a lightening took place, given that the person was right about saying that there has been a lightening. 
+If the person is right about saying that there has been a lightening, we can be sure that the lightening took place, so the probability would be 100% (= 1)
+
+Inserting all given terms, we get:
+
+P (T I L) = (P(L I T) * P(T)) / P(L) 
+          = (1 * 0.8) / (1/1000)
+          = 800
+
+Since a probability cannot equal 800, our calculation must be wrong!
+
+
+### Second attempt: Using the Wikipedia formula
+
+Searching for the working principles of Baye큦 theorem, we found an article on Wikipedia:
+
+https://de.wikipedia.org/wiki/Satz_von_Bayes
+
+On this web page, calculation example N�1 explains the formula for two urns, filled with balls. Applied on our given problem, we have to define the counter event of the given value, which would be the event of a lightening.
+
+NL = there has not been any lightening
+
+If we now only think of the case that the person is saying the truth, there are two cases:
+
+P (T I L) = 0.8  ***** This is probably not the right probability!
+P (T I NL) = 0   ***** This probability is not true either, since the person is right if it says there has been no lightening, if there was no lightening 
+
+The given formula, applied to our problem would be the following:
+
+P(T) = P(T I L) * P(L) + P(T I NL) * P(NL)
+    = 0.8 * (1/1000) + 0 * (999/1000)
+    = 0.0008
+    
+If we now take that new value of P(T) and insert it in Baye큦 formula, we get: 
+
+P (T I L) = (P(L I T) * P(T)) / P(L) 
+          = (1 * 0.0008) / (1/1000)
+          = 0.8
+          
+--> Since we already know from previous discussions that the probability must be lower than 80%, this result must still be wrong. The reason for the error in calculations is probably the wrong input for P (T I L) and P (T I NL).
+
+### Third attempt: Thinking of all cases, concerning complements
+
+For the lightening, the complements are clear: 
+
+P(L) = 1/1000
+P(NL) = 1 - P(L) = 999/1000
+
+Until now we have concerned the cases that the person is right ( P(T)), or that it is not right (P(NT)). However, those cases are already depending on the condition, because a person can only be right about its statement, if the event indeed did happen or did not happen. We should rather think of input values that are not already conditioned. This unconditioned value could be the answer of the person itself, so we would like to make a new definition:
+
+S = person says that there has been a lightening
+NS = person says that there has been no lightening
+
+In this case the statement "P(T I L) = 0.8" cannot be true, because P(T) now has to be devided!
+
+There are 4 cases:
+
+P(S I L)   -> which is true!
+P(S I NL)  -> which is not true!
+P(NS I L)  -> which is not true!
+P(NS I NL) -> which is true!
+
+So P(T) now consists of:
+
+P(T) = P(S I L) + P(NS I NL) = 0.8
+
+Now if we consider, that the person큦 answer is not conditioned by any thinking about what it has seen or not, the chance for an "S" or "NS" answer is 50:50.  **** Is that really the case?!
+
+P(S) = 0.5
+P(NS) = 0.5
+
+Now we can try to calculate the probability of all 4 cases by Baye큦 law:
+
+P (S I L) = (P(L I S) * P(S)) / P(L)
+
+Given the probabilities:
+
+P(S) = 0.5 
+P(L) = 1/1000
+
+The only missing probability is the one of "P(L + S)"
+
+--> Since this probability is missing in all 4 cases, and the solution of the terms by Baye큦 law would only be an inversion of the problem, we cannot compute the sum of "P(S I L) + P(NS I NL)". However, this would be crucial to solve the problem!
+
+## R coding
+
+For coding it might make sense to compute a vector, which includes random answers of people ("S" or "NS" - with an assigned probability of 0.5 : 0.5) and also a vector, which includes the random happening of a lightening ("L" or "NL" - with an assigned probability of (1/1000) : (999/1000)), given the condition that "P(T) = P(S I L) + P(NS I NL) = 0.8" 
+
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
