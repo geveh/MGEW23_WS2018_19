@@ -38,7 +38,7 @@ plot(RolledDice, menge, type = "h", col="chocolate", lwd=10, ## Werte für X,Y-
      xlim = c(min_dice,result_dice) ,
      main = "Likelihood of Dices", ## Diagramm-Titel
      xlab = "Number of Dices", ## X-Achsen Titel
-     ylab = "Likelihood", ## Y-Achsen Titel
+     ylab = "Frequency", ## Y-Achsen Titel
      cex.lab = 1.5, cex.main = 1.5)
 
 ```
