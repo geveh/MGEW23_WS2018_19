@@ -1,0 +1,50 @@
+---
+title: "Lightning Strike as Cause of Wildfires - Bayes "
+author: "Lisa Berghäuser, Melanie Fischer" 
+date: "21 November 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Exercise
+*Assume that lightning strike causes wildfires with a probability of
+1/1000. You observe a wildfire and an eyewitness claims that it was
+lit by lightning. What is the probability that this is correct, knowing
+that eyewitness reports are reliable 80% of the time?* (ref: moodle, Session 4)
+
+## Solution 
+P(L) (**P_L**): propability that a wildfire is caused by lightning. 
+
+P(Lc) (**P_Lc**): probability that a wildfire is not caused by lightning.
+```{r}
+P_L <- 1/1000
+P_Lc <- 1-P_L
+```
+P(W|L) (**P_W_L**): The witness is correct about the cause of the wildfire. 
+
+P(W|Lc)(**P_W_Lc**): The witness is not correct about the cause of the wildfire. 
+```{r}
+P_W_L <- 0.8
+P_W_Lc <- 1-P_W_L
+```
+Estimating the probability (in percent), that the wildfire was caused by a lightning with Bayes, using the tree diagramm approach. This yields two possible paths: That the wildfire was caused by a lightning strike and the eye witness is correct about wildfire's cause (P(W|LP)P(L)) and that the wildfire was not caused by a lightning strike and that the eyewitness is not correct (P(W|Lc)P(Lc)). Thus, the probability that the wildfire was caused by a lightning strike (P(L|W)) can be calculated by dividing the wanted path (P(W|LP)P(L)) by the two possible paths: 
+```{r}
+P_L_W <- ( P_W_L*P_L ) / ( ( P_W_L*P_L ) + ( P_W_Lc*P_Lc ) )
+round(x = P_L_W*100, digits = 4)
+```
+The probability for the case that the wildfire was *not* caused by a lightning strike and that the eyewitness is *not* correct can be, hence, calculated as: 
+
+```{r}
+P_L_Wc_1 <- (P_W_Lc*P_Lc) / ( ( P_W_L*P_L ) + ( P_W_Lc*P_Lc ) )
+round(x = P_L_Wc_1*100, digits = 4)
+```
+Or simply as countervalue of P(L|W):
+```{r}
+P_L_Wc_2 <- 1 - P_L_W
+round(x = P_L_Wc_2*100, digits = 4)
+```
+In conclusion, the case that the observed wildfire was *not* caused by a lightning strike has a significantly higher probability than the one where it was caused by a lightning strike. This result might seem counterintuitive at the first glance, especially as the eyewitness report says otherwise.    
