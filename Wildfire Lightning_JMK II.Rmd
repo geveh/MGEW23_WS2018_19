@@ -1,0 +1,58 @@
+---
+title: "Wildfire Lightning"
+author: "Jan Kärstens"
+Date: "22.11.2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+In our case scenario we observe a wildfire. The possibility for it to be caused by a lightning is 1/1000. An eyewitness tells us that he even observed the lightning, causing the fire. This statement has a probability of 0.8 to be true.
+
+Giving us the probabilities:
+```{r Probabilities}
+#Probabilities
+P_w <- 0.8 #Probability of eyewitness TRUE
+P_wc <- 1-P_w #Probability of eyewitness FALSE; c-counter
+P_f <- 0.001 #Probability of Wildfire caused by Lightning
+P_fc <- 1-P_f #Probability of Wildfire caused by everything Else; c-counter
+```
+
+Knowing this, we ask ourselves what's the probability for this event of a lighnting caused fire and the eyewitness telling the truth?:
+
+## P(w | f)
+
+Resolving Bayes Law we get the formula:
+
+##P(w | f) = (P(f | w) / (P(f | w) + P(f | wc))
+
+In the numerator we have to consider both cases: 
+Eyewitness is right and the fire was caused by a lightning (P(f | w)) and the case he is wrong and the fire was caused by something else (P(fc | wc)).
+
+w - eyewitness TRUE;
+wc - eyewitness FALSE ("c-counter");
+f - fire caused by lightning;
+fc - fire NOT caused by lightning ("c-counter");
+
+```{r P_w_f}
+#Calculation of P(w | f)
+P_w_f <- ((P_f * P_w)) / (((P_f * P_w)) + ((P_fc * P_wc))) #P(w | f)
+returnValue(P_w_f) #Giving Value calculated
+```
+On the other hand, we can also calculate the counter-event probability. The case that the witness is false and the fire was caused by something else (P(fc | wc)):
+
+```{r P_w_f}
+#Calculation of P(w | fc)
+P_w_fc <- ((P_fc * P_wc)) / (((P_fc * P_wc)) + ((P_f * P_w)))
+returnValue(P_w_fc)
+```
+To ensure we calculated correctly, we add up the both probabilities:
+```{r Sum}
+#Checking Probabilities' sum equals 1
+sum <-  P_w_f + P_w_fc
+returnValue(sum)
+```
