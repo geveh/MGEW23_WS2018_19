@@ -1,0 +1,59 @@
+---
+title: "Homework 3"
+author: "Andrea Hemmelmann - Eric Parra"
+date: "23 november 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Bayes' rule exercise
+
+## Problem formulation
+
+Assume that lightning strike causes wildfires with a probability of
+1/1000. You observe a wildfire and an eyewitness claims that it was
+lit by lightning. What is the probability that this is correct, knowing
+that eyewitness reports are reliable 80% of the time?
+
+## Solution
+
+p= Probability
+= Lightning strike causes a wildfire
+= Witness said that the wildfire was caused by lightning
+
+Bayes' rule = p(H|D) = (p(D|H)) p(H)) / p(D)
+
+Where p(D)= (p(D|H)) p(H)) + (p(D|H_f)) p(H_o))
+
+Posterior = (Likelihood * Prior) / Evidence
+
+Where H= Wildfire caused by a lightning. D= Witness said the wildfire was caused by a lightning
+
+## Creating variables
+
+```{r}
+
+p_h <- 0.001 # Probability that the wildfire was caused by lightning
+p_h_o <- 0.999 #Probability that the wildifre was not caused by a lightning
+p_d_h <- 0.8 # Probability that the witness is correct
+p_d_h_f <- 0.2 # Probability that the witness is wrong
+
+```
+
+## Bayes' rule calculation
+
+Now we calculate the probability that the witness claim is correct by assign the variables values to the Bayes' Rule equation
+
+```{r}
+
+p_l_w = (p_d_h * p_h) / ((p_d_h * p_h) + (p_d_h_f * p_h_o))
+p_l_w_p = p_l_w * 100
+p_l_w_p
+
+```
+Therefore the probability that the witness claim is correct is 0.4%
+
+
