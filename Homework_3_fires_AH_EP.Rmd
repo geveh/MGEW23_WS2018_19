@@ -21,8 +21,6 @@ that eyewitness reports are reliable 80% of the time?
 ## Solution
 
 p= Probability
-= Lightning strike causes a wildfire
-= Witness said that the wildfire was caused by lightning
 
 Bayes' rule = p(H|D) = (p(D|H)) p(H)) / p(D)
 
