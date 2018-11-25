@@ -1,0 +1,72 @@
+---
+title: "Homework 3 - Wildfire"
+author: "Martina Rosskopf & Nina Golombek"
+date: "25 November 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Excersize:
+
+Assume that lightning strike causes wildfires with a probability of 1/1000. 
+You observe a wildfire and an eyewitness claims that it was lit by lightning. 
+What is the probability that this is correct, knowing that eyewitness reports are 
+reliable 80% of the time?
+
+### Given Values:
+
+$P(L)$ = P(Wildfire caused by lightning) = 1/1000 = 0.0001
+
+$P(L_c)$ = P(Wildfire caused by something else) = 1 - P(L) = 1 - 0.0001 = 0.999
+
+
+$P(E|L)$ = P(Eyewitness is correct|Wildfire caused by lightning) = 80% = 0.8
+
+$P(E|L_c)$ = P(Eyewitness is correct|Wildfire caused by something else)   1 - P(E|L) = 1 - 0.8 = 0.2
+
+### Wanted:
+
+$P(L|E)$ = P(Wildfire caused by lightning|Eyewitness is correct)
+
+### Formula: Bayes Law
+
+The first step of finding the solution for this exercise was to look at the formular of Baye's:
+$$P(A|B) = \frac{P(B|A) * P(A)}{P(B)}$$
+$$P(B) = P(B|A) * P(A) + P(B|A_N) * P(B_N)$$
+
+## Result:
+By looking at the formular and rereading the given values in the questioning, we came to the conclusion that $P(A|B)$ is the probability for a wildfire caused by lightning on condition that the eyewitness is right. Which is the probablity we are looking for. Rewriting the formular with different variables.
+
+$$P(L|E) = \frac{P(E|L)*P(L)}{P(E)} = \frac{0.8 * 0.001}{0.2006} = 0,00398 = 0.398 \% $$
+$$P(E) = P(E|L) * P(L) + P(E|L_c) * P(L_c) =  0.8 * 0.001 + 0.2 * 0.999 = 0.2006 $$
+
+Now we can write the formular in an R code to calculate the final probability.
+First we need to define the known probabilities:
+
+```{r}
+p_l = 1 / 1000         #P(L)   
+p_lc = 1 - p_l         #P(L_c)
+p_e_l = 0.8            #P(E|L)
+p_e_lc = 1 - p_e_l     #P(E|L_c)
+```
+Next we get the solution for the exercise with upper formular.
+```{r}
+p_l_e = p_e_l*p_l / (p_e_l*p_l + p_e_lc*p_lc)
+print(p_l_e)
+```
+We then can see that the probability for a wildfire caused by lightning, given that the eyewitness is right, is (rounded) $P(L|E) = 0.004$ or 0.4%.
+
+
+
+
+  
+
+
+```{r}
+
+
+
+```
+
