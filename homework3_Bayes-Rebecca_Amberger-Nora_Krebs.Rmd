@@ -1,0 +1,177 @@
+---
+title: "Baye´s Theorem"
+author: "Nora Krebs and Rebecca Amberger"
+date: "20 November 2018"
+output: html_document
+---
+
+<br />
+<br />
+
+## Task of the week
+
+Assume that lightning strike causes wildfires with a probability of
+1/1000. You observe a wildfire and an eyewitness claims that it was
+lit by lightning. What is the probability that this is correct, knowing
+that eyewitness reports are reliable 80% of the time?
+
+Prepare a R Markdown-based *.html file containing documented R code on the eyewitness problem.
+<br />
+<br />
+
+## Analyzing the problem
+
+Considering the given problem, we know, that we have to focus on the conditioned probability, of the case that the person says the truth, given that there has been a lightening in advance.
+
+Now, if the events are declared in the following way:
+
+T = person is rigth\    
+L = there has been a lightening
+
+...the conditioned probability can be expressed in the followning way:
+
+  **P (T | L)**
+
+If we calculate the problem with Bay´s theorem, we can set up the formula in the following way: 
+
+  **P (T | L) = (P(L | T) * P(T)) / P(L)**
+
+The given probabilities are: 
+
+  **P(T) = 0.8**\   
+  **P(L) = 1/1000**
+<br />
+<br />
+
+## Approaches to the solution
+
+In the following section we want to share our thoughts and solution attemptes that led us to the final solution of the problem.
+<br />
+<br />
+
+### First attempt: Inserting all input into Baye´s theorem
+
+To solve the equation of Baye, we are missing the probability of:
+
+  **P(L | T)**
+
+In this case we are looking for the probability that a lightening took place, given that the person was right about saying that there has been a lightening. 
+If the person is right about saying that there has been a lightening, we can be sure that the lightening took place, so the probability would be 100% (= 1)
+
+Inserting all given terms, we get:
+
+  **P (T | L) = (P(L | T) * P(T)) / P(L)**\   
+  **P (T | L) = (1 * 0.8) / (1/1000) **\   
+  **P (T | L) = 800 **
+
+Since a probability cannot equal 800, our calculation must be wrong!
+<br />
+<br />
+
+### Second attempt: Thinking of all cases, concerning complements
+
+For the lightening, the complements are clear: 
+
+**P(L) = 1/1000**\    
+**P(NL) = 1 - P(L) = 999/1000**
+
+Until now we have concerned the cases that the person is right ( P(T)), or that it is not right (P(NT)). However, those cases are already depending on the condition, because a person can only be right about its statement, if the event indeed did happen or did not happen. We should rather think of input values that are not already conditioned. This unconditioned value could be the answer of the person itself, so we would like to make a new definition:
+
+S = person says that there has been a lightening\   
+NS = person says that there has been no lightening
+
+There are 4 cases:
+
+**P(S | L)**   -> which is true!\   
+**P(S | NL)**  -> which is not true!\   
+**P(NS | L)**  -> which is not true!\   
+**P(NS | NL)** -> which is true!
+
+So P(T) now consists of:
+
+**P(T) = P(S | L) + P(NS | NL)**\   
+**P(T) = 0.8**
+
+Now if we consider, that the person´s answer is not conditioned by any thinking about what it has seen or not, the chance for an "S" or "NS" answer is 50:50.  
+
+**P(S) = 0.5**\   
+**P(NS) = 0.5**
+
+Now we can try to calculate the probability of all 4 cases by Baye´s law:
+
+**P (S | L) = (P(L | S) * P(S)) / P(L)**
+
+Given the probabilities:
+
+**P(S) = 0.5**\    
+**P(L) = 1/1000**
+
+The only missing probability is the one of **P(L | S)**
+
+--> Since this probability is missing in all 4 cases, and the solution of the terms by Baye´s law would only be an inversion of the problem, we cannot compute the sum of **P(S | L) + P(NS | NL)**. However, this would be crucial to solve the problem!
+<br />
+<br />
+
+## Solution to the problem: the tree diagram approach
+
+If we think of the definitions, which we made in earlier attempts, we get: 
+
+L = the wildfire has been causeb by lightning ( **P(L) = 1/1000** )\    
+NL = the wildfire has not been caused by lightning ( **P(NL) = 999/1000** )\    
+T = person is right about the cause of the wildfire ( **P(T) = 0.8** )\   
+NT = person is not right about the cause of the wild fire ( **P(NT) = 0.2** )\    
+S = person says that the wildfire has been caused by lighning\    
+NS = person says that the wildfire has not been caused by lightning 
+
+```{r}
+T <- 0.8
+NT <- 1 - 0.8
+L <- 1/1000
+NL <- 1 - L
+```
+
+If we consider these possibilities in a tree diagramm, we get the following paths:
+
+**P(L, T) = 1/1000 * 0.8 = 0.0008**\    
+**P(L, NT) = 1/1000 * 0.2 = 0.0002**\   
+**P(NL, T) = 999/1000 * 0.8 = 0.7992**\   
+**P(NL, NT) = 999/1000 * 0.2 = 0.1998**
+
+```{r}
+LandT <- L * T
+LandNT <- L * NT
+NLandT <- NL * T
+NLandNT <- NL * NT
+```
+
+To solve Baye´s equation we consulted the following website:
+
+
+https://wissenschafts-thurm.de/grundlagen-der-statistik-der-satz-von-bayes/
+
+We then realized, that for Baye´s theorem, we are not dealing with the event of the person being right ( **P(T)** ), but with the probability of the person saying that the wildfire has been caused by lightning ( **P (S)** ). This probability can be calculated by:
+
+**P(S) = P(L, T) + P(NL, NT)**\      
+**= 0.0008 + 0.1998**\     
+**= 0.2006**
+
+```{r}
+S <- LandT + NLandNT
+round(x = S * 100, digits = 4)
+```
+
+Adjusted to our needs, Baye´s theorem can be written in the following way: 
+Baye´s theorem can therefore be solved in the following way:
+
+  **P(S | L) = P(L, T) / (P(L, T) + P(NL, NT))**\   
+  **P(S | L) = (P(L) * P(T)) / (P(L) * P(T) + P(NL) * P(NT))**\   
+  **P( S | L ) = 0.0008 / (0.0008 + 0.1998)**\      
+  **P( S | L ) = 0.004**
+
+```{r}
+S_L <- LandT / S
+round(x = S_L * 100, digits = 4)
+```
+
+
+So we know, that if a person tells us, that the wildfire has been caused by lightning, the report has actually only a probability of **0.4%** to be true.
