@@ -27,10 +27,10 @@ Bayer´s rule = P(L|W) = L(W|L) * P(L) / P(W)
 
 P(W) = PW(W|L) * P(L) + P(L|W_c) * P(W_c)
 
-P_L = 0.001 # probability, that the wildfire was caused be lithning
-P_W_c = 1 - P_L = 0.999 # probability of wildfire caused be another faktor
-P_L_W = 0.8  # withness of a report, that the wildfire was caused be lithning
-P_L_K_c = 0.2 # # probability that the eyewithness is wrong
+P_L = 0.001 # probability, that the wildfire was caused be lithning  
+P_W_c = 1 - P_L = 0.999 # probability of wildfire caused be another faktor  
+P_L_W = 0.8  # withness of a report, that the wildfire was caused be lithning  
+P_L_K_c = 0.2 # # probability that the eyewithness is wrong  
 
 # now we have defined all parameters and can calcute
 ## Because we have a probability, we have to multiply the result with 100
