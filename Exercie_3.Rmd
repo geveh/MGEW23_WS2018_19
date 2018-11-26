@@ -1,35 +1,29 @@
 ---
-title: "Homework - Bayer´s Rule"
-author: "René Neuling - Jakob Feyrer"
+title: "Homework - BayerÂ´s Rule"
+author: "RenÃ© Neuling - Jakob Feyrer"
 date: "25 November 2018"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
-# Exercise Bayer´s Rule
+# Exercise BayerÂ´s Rule
 ## Task
 
 Assume that lightning strike causes wildfires with a probability of 1/1000. You observe a wildfire and an eyewitness claims that it was lit by lightning. What is the probability that this is correct, knowing that eyewitness reports are reliable 80% of the time?
 
 
 
-```{r cars}
-summary(cars)
-```
 
-## Define all Parameters and describe Bayer´s law
+## Define all Parameters and describe BayerÂ´s law
 
 we have a wildfire because of a lithning
-lithning was the trigger and was seen with conditional probability of Bayer´s rule
+lithning was the trigger and was seen with conditional probability of BayerÂ´s rule
 
-If we write Bayer´s rule in words:
+If we write BayerÂ´s rule in words:
 
-Posterior = Likelihood × Prior / Evidence # to see in lecture 4 
+Posterior = Likelihood Ã— Prior / Evidence # to see in lecture 4 
 
-Bayer´s rule = P(L|W) = L(W|L) * P(L) / P(W)
+BayerÂ´s rule = P(L|W) = L(W|L) * P(L) / P(W)
 
 P(W) = PW(W|L) * P(L) + P(L|W_c) * P(W_c)
 
