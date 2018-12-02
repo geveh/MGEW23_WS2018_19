@@ -110,6 +110,15 @@ ui <- fluidPage(
   #Date
   titlePanel("created on: 26/11/2018"),
   
+    # Application description
+  pre("If Natural Hazards are quantified using statistics, probabilities are usually conditioned.
+Earlier examples have shown that even though the probability of a right prediction might be high, 
+most predictions will be wrong since large natural hazards occur usually only very rarely. 
+This App intends to show a relation between the two conditioned probabilities and their outcome.
+      'Prediction Rate' refers to the probability that the prediction is right
+      'Event Occurrence' refers to the probability at which a Natural Hazards happens
+      'Wrong Forecast' refers to the conditioned probability that a wrong forecast caused a false alarm" ),
+  
  # Layout of the Sidebar with input(prediction rate) and output (wrong forecast):
   sidebarLayout(
     #sidebar panel for inpu:
@@ -119,13 +128,7 @@ ui <- fluidPage(
                   label = "Prediction Rate in %:",
                   min = 0,
                   max = 100,
-                  value = 95),
-      
-      sliderInput(inputId = "Earthquake_Probability",
-                  label = "Earthquake Probability in %:",
-                  min = 0,
-                  max = 1,
-                  value = 0.00001)
+                  value = 95)
     ),
 
     # Main panel shows a plot that displays the output
