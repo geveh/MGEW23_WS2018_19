@@ -97,6 +97,19 @@ It would be interesting now to see how the prediction rate of a person and the l
 ##Shiny App for Conditioned probabilites in Natural Hazards
 
 ```{r}
+# Starts a shiny app:
+library(shiny)
+
+# Defines user interface for application that draws a plot:
+ui <- fluidPage(
+  
+  # Application title
+  headerPanel("Conditioned Probability in Natural Hazards"),
+  # Authors and title
+  titlePanel("Interactive Application by Nora Krebs and Rebecca Amberger"),
+  #Date
+  titlePanel("created on: 26/11/2018"),
+  
  # Layout of the Sidebar with input(prediction rate) and output (wrong forecast):
   sidebarLayout(
     #sidebar panel for inpu:
@@ -110,8 +123,8 @@ It would be interesting now to see how the prediction rate of a person and the l
       
       sliderInput(inputId = "Earthquake_Probability",
                   label = "Earthquake Probability in %:",
-                  min = 0.00001,
-                  max = 100,
+                  min = 0,
+                  max = 1,
                   value = 0.00001)
     ),
 
@@ -121,7 +134,10 @@ It would be interesting now to see how the prediction rate of a person and the l
       plotOutput(outputId = "Wrong_Forecast")
     )
   )
-      
+)
+```
+
+```{r}
 # Define requirements which are needed by server to draw a plot
 server <- function(input, output) {
   
@@ -132,7 +148,7 @@ server <- function(input, output) {
     #creating a vector that defines the input for x: 'Event Occurrence'
      x <- c(0.0000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1);
      
-     #Given Baye´s theorem, we want to calculate the probability of a wrong forecast, given that a hazardous 
+     #Given BayeÂ´s theorem, we want to calculate the probability of a wrong forecast, given that a hazardous 
      #event occurres at a certain probability, given in the vector x
      
      y <- (((1-input$Prediction_Rate * 1-x) / ((1-input$Prediction_Rate * 1-x) + (1-input$Prediction_Rate * x)))* 100)
@@ -148,4 +164,8 @@ server <- function(input, output) {
     lines(x,y,type= "o")
   })
 }
+
+# Run the application 
+shinyApp(ui = ui, server = server)
 ```
+
