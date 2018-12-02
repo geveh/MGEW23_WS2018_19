@@ -1,0 +1,196 @@
+---
+title: "Bayes' Rule - Magician Michelles's Prediction of Megathrust Earthquakes"
+author: "Gwendolin Lüdtke, Sina Spors"
+date: "27 November 2018"
+output: 
+html_document:
+ # highlight: textmate
+    #code_folding: show
+    #theme: spacelab                 
+    #toc: true 
+    #toc_float: 
+      #collapsed: false 
+      #smooth_scroll: true
+runtime: shiny #add Shiny components to a R Markdown document
+
+     
+
+
+#<style> #does not work
+#body {
+#text-align: justify }
+#</style>
+
+
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<div style="text-align: justify;"> 
+
+*Magician Michelle says that she can predict large megathrust earthquakes. well, at least 95 % of the time. Assume that these earthquakes occur with a probability of $10^{-5}$. How likely will Michelle cause a false alarm with her next prediction?*
+
+Up to this point, a classic R Markdown HTML document was used for documenting possible applications of the Bayes' Rule. Data which were used in the calculation were already provided by the programmer. Therefore, the reader could only track the different steps of calculation. Now, we go one step further and include a user input in our probability-calculation by using a Shiny document.
+
+# Recap: Classic R Markdown HTML
+
+As well as for the wildfire-problem, the **Bayes' Rule** is applied in order to calculate the probability of a false alarm (with respect to megathrust earthquakes) caused by Magician Michelle.
+$$p(\kappa|D)=\frac{p(D|\kappa) p(\kappa)}{p(D)}$$
+where
+
+* D = Michelle predicts a megathrust earthquake 
+* $\kappa$ = a megathrust earthquake occurs
+
+We can deduce from the values given in the task that:
+
+* $p(D|\kappa)=p(Michelle\:is\:right)=95/100$
+* $p(\kappa)=p(megathrust\:earthquake)=1/100000$
+
+In R:
+
+```{r}
+#p(k) = p(megathrust earthquake occurs)
+prior <- 1/100000
+
+#p(D|k) = p(Michelle predicts a megathrust earthquake|megathrust earthquake occurs)
+likeli <- 95/100
+```
+
+Again, we are using the **law of total probability** in order to calculate $p(D)$:
+
+$$p(D) = p(D|\kappa)p(\kappa)+p(D|-\kappa)p(-\kappa)$$
+
+```{r}
+#p(D) = p(Michelle predicts a megathrust earthquake)
+evid <- (likeli*prior) + ((1-likeli)*(1-prior))
+```
+
+```{r, echo = FALSE}
+#echo = FALSE, do not show chunk, but output
+cat("p(D): ",evid)
+
+```
+
+Finally, the probability of Michelle being right about the occurrence of a megathrust earthquake can be calculated:
+
+```{r}
+#p(k|D) = p(megathrust earthquake occurs|Michelle predicts a megathrust earthquake)
+post <- likeli * prior / evid
+```
+
+```{r, echo = FALSE}
+cat("p(k|D): ",post)
+```
+
+However, we want to calculate the probability of a false alarm. That is why we have to calculate the complementary probability: 
+
+```{r}
+post_false_alarm <- 1 - post
+```
+
+```{r, echo = FALSE}
+cat("p(k|D): ", post_false_alarm)
+```
+
+Don't trust Michelle! 
+
+# Shiny R Markdown Documents
+
+In contrast to the prior R Markdown HTML, [Shiny documents](https://bookdown.org/yihui/rmarkdown/shiny-documents.html) are no longer static documentations. They allow that the user can change different input parameters of an analysis and provide an immediate and reactive output of the results. Instead of embedding a standalone Shiny App within the R Markdown document, several Shiny inputs and outputs are embedded.
+
+
+### Layout Definition
+
+First of all, the layout of the Shiny application is defined. There are different layout options. The chosen function ```sidebarLayout()``` creates an app-layout with a sidebar containing the input controls and a larger main area containing all outputs.
+
+```{r, eval = FALSE}
+sidebarLayout(
+  sidePanel(
+    
+  ),
+  mainPanel(
+    
+  )
+)
+
+```
+
+### Inputs
+
+Several *input()-functions enable the user to select or change the inputs parameters and create an input widget. In the case of Magician Michelle, the input parameters are:
+
+* probability of Michelle being right
+* probability of a megathrust earthquake
+
+The user should use a ```sliderInput``` for each of these parameters in order to change the values of the input parameters. This kind of input is advantageous since the programmer can define the minimum and maximum values that can be selected as well as the steps between selectable values. 
+
+
+### Outputs
+
+The output, that can be found in the main panel, should consist of a text output as well as of bar showing the posterior-probability of a false alarm. It is important to use ```renderText``` and ```renderPlot``` in order to create a reactive output. 
+
+The entire R code would therefore be:
+
+
+
+```{r}
+
+# Title of the app
+#titlePanel("Bayes' Rule")
+
+sidebarLayout(
+  
+  sidebarPanel( # For the input controls
+    
+    sliderInput("trust", "Trustworthiness of Michelle:",min = 1, max = 100, value = 95, step = 1, 
+                  post= " %",
+                  animate = TRUE
+    ),
+    
+    sliderInput("earthquake", "Probability of a megathrust earthquake:", 
+                min = 0.00001, max = 100, value = 0.00001,
+                post = " %",
+                animate = TRUE)
+
+    ),
+  
+  mainPanel( # for the outputs
+
+   renderText({
+   
+      likeli <- (input$trust)/100
+      prior <- (input$earthquake)/100
+      evid <- (likeli*prior) + ((1-likeli)*(1-prior))
+      post <- likeli * prior / evid
+      
+      postPercentage <- (1-post) * 100
+      sprintf("Michelle is wrong and causes a false alarm with a probability of %.4f %%", postPercentage)
+     #paste("Michelle is wrong and causes false alarm with a probability of ", (1-post), " %")
+    }),
+   
+   renderPlot({
+
+      likeli <- (input$trust)/100
+      prior <- (input$earthquake)/100
+      evid <- (likeli*prior) + ((1-likeli)*(1-prior))
+      post <- likeli * prior / evid
+      
+      postPercentage <- (1-post) * 100
+      barplot(postPercentage,main = "",horiz = TRUE, xlim = c(0, 100), col = c("#4286f4"), names.arg =    c("trustworthiness (in %)"))
+      
+      
+  })
+    
+  ),
+  
+  position = "left" #position of the sidebar
+)
+
+```
+
+  
+</div>
+
