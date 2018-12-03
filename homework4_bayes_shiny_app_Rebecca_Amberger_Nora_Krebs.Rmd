@@ -1,0 +1,174 @@
+---
+title: "Conditioned Probabilities in Natural Hazards"
+author: "Nora Krebs and Rebecca Amberger"
+date: "27 November 2018"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Task of the week
+
+This week our task was to calculate the conditioned probability of a new problem, using Bayes' law again and to present the results in a Shiny app. 
+
+The new conditioned probability problem is the following: 
+
+"Magician Michelle says that she can predict large megathrust earthquakes. well, at least 95% of the time. Assume that these earthquakes occur with a probability of $10^{-5}$. How likely will Michelle cause a false alarm with her next prediction?"
+
+## Analyzing the given problem
+
+The problem can be solved with Bayes' law:
+
+$$P(A|B)=\frac{P(B|A)*P(A)}{P(B)}$$
+the given variables are:
+
+E = the earthquake occurres\    
+EC = the earthquake does not occurre\    
+M = Michelle is right\    
+MC = Michelle is wrong\   
+
+```{r}
+#probability of earthquake occurrence:
+  E <- 0.00001
+  E * 100 #in %
+#probability of no earthquake occurrence:
+  EC <- 1-E
+  EC * 100 #in %
+#probability of Michelle being right:
+  M <- 0.95
+  M * 100 #in %
+#probability of Michelle being wrong:
+  MC <- 1-M
+  MC * 100 #in %
+```
+
+If we pair the tuples in a tree diagram, we would get the following probabilities:
+
+```{r}
+#Earthquake appears and Michelle is right
+E_M <- E * M
+E_M * 100 #in %
+
+#Earthquake appears and Michelle is wrong
+E_MC <- E * MC
+E_MC * 100 #in %
+
+#Earthquake does not appear and Michelle is right
+EC_M <- EC * M
+EC_M * 100 #in %
+  
+#Earthquake does not appear and Michelle is wrong
+EC_MC <- EC * MC
+EC_MC * 100 #in %
+
+```
+
+##Solution of the problem with Bayes' theorem
+
+In the specific case we are looking for the probability that Michelle is wrong about her earthquake prediction (she forecasts an earthquake, but no earthquake occurres). Therefore we are most interested in the cases of $E_MC$ and $EC_MC$
+
+If we apply Bayes' theorem, the formula can be written in the following way:
+
+$$P(EC|MC)=\frac{P(MC|EC)*P(EC)}{P(MC)}$$
+
+We can then solve the problem in the following way:
+
+$$P(EC|MC)=\frac{P(MC|EC)*P(EC)}{\sum\limits_{EC} P(MC|EC)*P(EC)}$$
+
+```{r}
+#conditioned probability that the earthquake does not appear, given that Michelle says that there will be an earthquake
+EC_con_MC <- EC_MC/(EC_MC + E_MC)
+EC_con_MC * 100 #in %
+```
+
+###Answer to the question
+
+Michelle will cause a false alarm with a probability of almost 100%, given that the earthquake does not occure.
+
+##Discussion of the problem
+
+Although Michelle is good at predicting earthquakes, by giving a right prediction in 95 % of the cases, the event of a large megathrust earthquake is so unlikely (only 0.001 % ) that she barely even has the chance to give a right prediction and ends up givig fals warnings almost 100 % of the time.
+
+It would be interesting now to see how the prediction rate of a person and the likeliness of an event to happen are influencing eachother. Therefore we have developed a App in R with the Shiny Package.
+
+##Shiny App for Conditioned probabilites in Natural Hazards
+
+```{r}
+# Starts a shiny app:
+library(shiny)
+
+# Defines user interface for application that draws a plot:
+ui <- fluidPage(
+  
+  # Application title
+  headerPanel("Conditioned Probability in Natural Hazards"),
+  # Authors and title
+  titlePanel("Interactive Application by Nora Krebs and Rebecca Amberger"),
+  #Date
+  titlePanel("created on: 26/11/2018"),
+  
+    # Application description
+  pre("If Natural Hazards are quantified using statistics, probabilities are usually conditioned.
+Earlier examples have shown that even though the probability of a right prediction might be high, 
+most predictions will be wrong since large natural hazards occur usually only very rarely. 
+This App intends to show a relation between the two conditioned probabilities and their outcome.
+      'Prediction Rate' refers to the probability that the prediction is right
+      'Event Occurrence' refers to the probability at which a Natural Hazards happens
+      'Wrong Forecast' refers to the conditioned probability that a wrong forecast caused a false alarm" ),
+  
+ # Layout of the Sidebar with input(prediction rate) and output (wrong forecast):
+  sidebarLayout(
+    #sidebar panel for inpu:
+    sidebarPanel(
+      #Input: slider to set a certain prediciton rate and earthquake probability
+      sliderInput(inputId = "Prediction_Rate",
+                  label = "Prediction Rate in %:",
+                  min = 0,
+                  max = 100,
+                  value = 95)
+    ),
+
+    # Main panel shows a plot that displays the output
+    mainPanel(
+      # Output: Plot of the Wrong Forecast versus Event Occurrence:
+      plotOutput(outputId = "Wrong_Forecast")
+    )
+  )
+)
+```
+
+```{r}
+# Define requirements which are needed by server to draw a plot
+server <- function(input, output) {
+  
+  #making the plot interactive, so it is re-drawn after the input has been changed 
+  #(by using the 'renderPlot'-function):
+  output$Wrong_Forecast <- renderPlot({
+    
+    #creating a vector that defines the input for x: 'Event Occurrence'
+     x <- c(0.0000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1);
+     
+     #Given Baye´s theorem, we want to calculate the probability of a wrong forecast, given that a hazardous 
+     #event occurres at a certain probability, given in the vector x
+     
+     y <- (((1-input$Prediction_Rate * 1-x) / ((1-input$Prediction_Rate * 1-x) + (1-input$Prediction_Rate * x)))* 100)
+       
+    #creates a graph with axes, titles, etc., while "type=0" indicates that points are not plotted yet
+    #and "log=x" indicates that the 'Event Occurrence' is plotted on a logarithmic scale and indicates all
+    #further settings of the plot (caption, axis labels, magnification of labels/caption)
+    plot(x,y, log="x", type= "n", main = "Probability of a wrong Forecast with changing Event probabilities, 
+         for a known Prediciton rate",
+         xlab = "Event Occurrence [%]", ylab = "Wrong Forecast [%]",
+         cex.main = 1.4, cex.lab = 1.2)
+    #creates a line chart where points are overplotted by lines
+    lines(x,y,type= "o")
+  })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+```
+
