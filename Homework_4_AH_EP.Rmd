@@ -49,7 +49,7 @@ high, the probability of occurrence of a large megathrust earthquake is very low
 (0.0001)
 
 Therefore, the probability of Michelle is wrong (and then she cause a false 
-alarm) is 1 - 0.0019= 0.99981. 
+alarm) is 1 - 0.0019= 0.099981. 
 
 Now, we make a Shiny app in which it is possible to change the values of both
 the probability of occurrence of a large megathrust eartquake and/or the 
