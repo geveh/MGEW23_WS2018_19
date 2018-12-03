@@ -1,0 +1,38 @@
+---
+title: "Neuling"
+author: "Neuling"
+date: "3 12 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Task: Design and upload a Shiny App with R Markdown explaining
+# Bayes' Rule with an example from the field of natural
+# hazards and disasters. Use the interactive functions to
+# allow different input values. Explain the example in your
+# own words
+
+# Event: New Zealand are  affected by a lot of natural disasters, e.g earthquakes, floods or landslides. 
+# The probability, that the next natural disaster is an earthquake is 1/2000. In Christchurch you find some tipp?s, 
+# which are indicators for possible 
+# earthquakes. The movement and formation of clouds can predict earthquakes. The probability, that the cloud formation
+# showes, that christchurch will be affected is 0.75. What is the probability, that Christchurch is affected by an 
+# earthquake, if the clouds show, that an earthquake will be come soon.
+
+# Define all Parameters
+P_E <- 0.75    # probability, that the clouds predict correct  
+P_W_E <- 0.25  # probability, that the cloud movement are wring  
+P_W_N <- 0.9995 # probability, that the next natural disaster is not an earthquake  
+P_W_L <- 0.0005 # Probability, that next natural disaster is an earthquake  
+
+# Define Bayes Rule
+
+P_W = (P_E * P_W_L) + (P_W_E * P_W_N)
+
+# Calcute the result and multiply it with 100
+
+P_L_W = P_E * P_W_L / P_W * 100
+
+# The result, that the cloud movement is correct is 0.25025 . 
