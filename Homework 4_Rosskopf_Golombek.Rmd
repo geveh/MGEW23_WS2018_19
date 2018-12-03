@@ -1,0 +1,100 @@
+---
+title: "Homework4_ShinyApp"
+author: "Nina Golombek & Martina Rosskopf"
+date: "3 12 2018"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Task
+Design and upload a Shiny App with R Markdown explaining Bayes??? Rule with an example from the field of natural hazards and disasters. Use the interactive functions to allow different input values. Explain the example in your own words.
+
+## Real life example
+Magician Michelle says that she can predict large megathrust earthquakes... well, at least 95% of the time. Assume that these earthquakes occur with a probability of $10^{-5}$. How likely will Michelle cause a false alarm with her next prediction?
+
+## Solution
+Like the homework of last week we can calculate this task with the Baye's Rule. This week we focus on writing a code which can be used interactiv. This means the values can be changed in a so called Shiny App and the results will directly be recalculated. 
+
+### Introduction to Shiny App
+The shiny App can be directly started from RStudio which makes it easy to be used. For all Shiny Apps you'll start the code with *library(shiny)*. The second step is to define *ui* with *ui <- fluidPage()* to set the user interface. In this part of the code you write the title with *titlePanel()*. With *sidebarLayout* you define the overall Layout, in our case you will have a smaller left panel and a bigger right Panel. With *sidebarPanel()* and *mainPanel()* you can set what will be shown in those panels. Here we have the input values in the *sidebarPanel()* and in the *mainPanel()* will be the results.
+
+In our case we are interested in two values. One which gives us a probabilty over an event like a megathrust earthquake. This one can be put into the first interactive option which is coded by *numericInput()* in the *sidebarPanel()*. The second value is the certainty that the prediction of Michelle is right. This one is a value between 0 and 100% which can be choosen with the slider (coded with *sliderinput()*)
+
+In the *mainPanel()* you select the Outputs which will be shown with *textOutput()*.
+
+```{r}
+library(shiny)
+
+# Define UI 
+ui <- fluidPage(
+  titlePanel("Bayes' Rule"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      helpText("Write a value between 0 and 1 for the given probability of a natural hazard"),
+      
+      numericInput("P_NH",    #Probabibilty Natural Hazard
+                h4("Given probability of an event"),
+                value = 0.00001,
+                min = 0,
+                max = 1),
+                
+      helpText("Select the value of the given certainty by adjusting the slider"),
+      
+      sliderInput("P_R_NH",    #Probability prediction Right under condition that Natural Hazard happened
+                  h4("Given certainty"),
+                  min = 0, max = 1, value = c(0, 0.95))
+      
+    ),
+    mainPanel(
+      textOutput("selected_probability"),
+      textOutput("certainty"),
+      textOutput("Pc_NH_R")
+    )
+  )
+)
+```
+
+The next important part of the code is the *server* part. In this part the App works with the input and outputs. In our case we calculate the resulting probability for a false alarm.
+```{r}
+
+# Define server logic 
+server <- function(input, output) {
+   
+  output$selected_probability <- renderText({ 
+    paste("The probability for a specific natural hazard is", input$P_NH)
+    })
+  output$certainty <- renderText({
+    paste("You're selected certainty of a prediction is", input$P_R_NH[2])
+  })
+  output$Pc_NH_R <- renderText({
+    P_R_NH <- input$P_R_NH[2]
+    Pc_R_NH <- 1 - P_R_NH
+    P_NH <- input$P_NH
+    Pc_NH <- 1 - P_NH
+    P_NH_R <- P_R_NH * P_NH / (P_R_NH * P_NH + Pc_R_NH * Pc_NH)
+    P_NH_R <- round(P_NH_R, digits = 4)
+    Pc_NH_R <- 1 - P_NH_R
+    paste("Resulting probability for a false alarm is ", Pc_NH_R*100, "%")
+  })
+}
+```
+The following part of a shiny App code is always at the end. It runs the application by connecting the interface part with the server part.
+
+```{r}
+# Run the application 
+shinyApp(ui = ui, server = server)
+
+```
+
+
+## Results
+
+In our example Michelle's prediction will be wrong with a probability of 99,81%. With this app you can now adjust the given values and see how the propability of a right prediction might change or use this for similar other examples.
+
+
+
