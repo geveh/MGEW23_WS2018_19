@@ -1,0 +1,35 @@
+---
+title: "Earthquake Magician"
+author: "Jan Kärstens"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Magician Michelle says that she can predict large megathrust
+earthquakes... well, at least 95% of the time. Assume that these
+earthquakes occur with a probability of 10^???5.How likely will
+Michelle cause a false alarm with her next prediction?
+
+```{r cars}
+
+
+# Probabilities
+P_m <- 0.95
+P_mc <- 1-P_m
+P_e <- (10^-5)
+P_ec <- 1-P_e
+
+# Calculating products of Posteriors
+P_ec_mc <- P_ec * P_mc
+P_ec_m <- P_ec * P_m
+
+#Calculating wanted probability
+P_mc_ec <- (P_ec_mc * P_mc) / ((P_ec_mc * P_mc) + (P_ec_m * P_m))
+returnValue(P_mc_ec)
+
+```
+
+
