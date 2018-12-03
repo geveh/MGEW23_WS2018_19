@@ -1,0 +1,96 @@
+---
+title: "4th Homework: Shiny Application with Bayes Code"
+author: "Melanie Fischer, Lisa Berghäuser"
+date: "28 November 2018"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This R Markdown document is made interactive using Shiny. 
+
+## Task
+*Design and upload a Shiny App with R Markdown explaining Bayes’ Rule with an example from the field of natural hazards and disasters. Use the interactive functions to allow different input values. Explain the example in your own words.* (ref: moodle2, Session 5)
+
+## Case Study 
+Michelle the Magician can predict large megathrust earthquakes. She knows that her predictions are correct with a probability of P = 0.95. With the background that earthquakes occur with a probability of P = 1e-5: how likely will Michelle cause a false alarm with her prediction? 
+
+## Solution
+### Approach
+With Bayes rule you can easily estimate the conditional probabilities. We use the approach that was presented in the last homework. This homework focusses on how to present the results in a shiny app. In the following we present the code and the app. You can start a shiny app from a template within RStudio very easily. There are four important parts: 
+
+- load the **shiny** package within your R session
+- with **ui <- fluidPage() ** you set the user interface. This is the same for all shiny apps. Details on the look of your web page can be defined within this function. 
+- with **server** you handle the inputs and outputs of your shiny app. The inputs will be the reactive parts here. 
+- with **shinyApp()** you build the application. 
+
+### A Shiny Application
+With **titlePanel** we chose the title of the application. With **sidebarLayout** function we select the settings of a layout that includes a small side panel on the left and a bigger main panel on the right. The definitions of these panels are defined in **sidebarPanel** and in **mainPanel**. The two values of interest (**Probability of Nat. Hazard** and **Reliability of Prediction**) are given in a reactive interface where you can adjust the value by steps (with **numericInput()**). Therefore, you chose a minimum and a maximum value (0 an 1 each), the steps and the default value, which are, according to our example 0.00001 and 0.95. 
+The main panel shows the output, we chose the **textOutput()** function. You can structure it with standard print commands.
+
+
+```{r, echo=TRUE}
+library(shiny)
+
+ui <- fluidPage(
+  
+   titlePanel("Occurence Probability of a Natural Hazard Based on a Prediction Reliability"),
+   
+   
+   sidebarLayout(
+      sidebarPanel(
+        p("Select the values of interest"),
+         numericInput(inputId = "P_NH", 
+                      label = "Probability of Nat. Hazard [0 to 1]",  
+                      min = 0,
+                      max = 1,
+                      step = 1e-5,
+                     value = 1e-5 ),
+         numericInput(inputId = "P_R_NH",
+                      label = "Reliability of Prediction [0 to 1]",
+                      min = 0,
+                      max = 1,
+                      step = 0.01,
+                      value = 0.95)
+      ),
+      
+      mainPanel(
+        p(strong("Resulting occurence probability [%] is:")),
+        textOutput("P_NH_R"), 
+        p(strong("Resulting counter occurence probability [%] is:")),
+        textOutput("Pc_NH_R")
+         )
+      )
+   )
+```
+In the server unit of the code, you capture the input with their ID's (as set in the previous step) and implement Bayes Rule to create an output. As we chose our outputs to be presented as text (**textOutput()**), we use the **renderText()** function. Finally, we combine user interface and server to run our shiny app (**shinyApp()**).
+
+
+```{r, echo=TRUE}
+
+server <- function(input, output) {
+   
+   output$P_NH_R <- renderText({
+     P_NH_R <- ( input$P_R_NH*input$P_NH ) / ( (input$P_R_NH*input$P_NH ) + ( 1-input$P_R_NH*1-input$P_NH ) )
+     round(x = P_NH_R*100, digits = 4)
+   })
+   
+   output$Pc_NH_R <- renderText({
+     P_NH_R <- ( input$P_R_NH*input$P_NH ) / ( (input$P_R_NH*input$P_NH ) + ( 1-input$P_R_NH*1-input$P_NH ) )
+     P_NH_R <- round(x = P_NH_R*100, digits = 4)
+     Pc_NH_R <- (1 - (P_NH_R))* 100
+   })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+
+```
+
+### Result and Answer
+As we can see, Michelle is likely to make a false prediction by a probability of 98.1 %. You can change the preconditions with changing the values with the up and down arrows now. The results will be adjusted according to the changing inputs. Have fun with adjusting the probabilities and exploring the different outcomes!
+
+
