@@ -1,0 +1,53 @@
+---
+title: "Poisson Distribution"
+author: "Jan Kärstens"
+date: "07.12.2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+We define a matrix "ma" in the range from 1 to "maxi" with "n" values.
+
+```{r cars}
+#Define desired range of matrix values (1 to maxi)
+maxi <- 100
+#Define desired size of matrix in range of 1 to maxi
+n <- 10
+
+#Matrix ma defined with 10 elements in the range of 1 to 100; these elements are part of the events in the range of lambda
+ma<- sample(1:maxi, n)
+returnValue(ma)
+
+```
+
+Next we define a range of all events "lambda" in which our matrix is included, here set 1 to 200 and define its Prior "prior_p". The prior is defined as 1 / Sum of ma. This is done for all events in lambda.
+
+```{r}
+#Range of all events (including ma) defined
+lambda <- 1:200
+
+#prior probability p(lambda) defined for all events of lambda (1-200)
+prior_p <-rep(1 / sum(ma), length(lambda))
+
+```
+
+We define another Matrix "l_pois" in the length of lambda. In the matrix we store the product of the poisson distribution of the 10 events stored in Matrix "ma".
+```{r}
+#"Container" (i.e. Matrix) to store results of product of poisson distributions
+l_pois <- rep(NA, length(lambda))
+
+#loop in length of prior_lambda (1:200) to form product of poisson distributions
+for (i in seq_along(lambda)){
+  #product of poisson distr. at element i generated and stored in container at position i
+  l_pois[i] <- prod(dpois(ma, i)) 
+}
+```
+Finally we calculate the wanted Posterior "bayesnum" and Plot it. And receive the wanted Poisson Distribution with a Gaussian-like bell shape.
+```{r}
+#Calculating Bayes law and plotting values
+bayesnum <- l_pois * prior_p
+bayesnum <- bayesnum / sum(bayesnum)
+plot(bayesnum, type = "h", col = "chocolate")
+```
