@@ -1,0 +1,54 @@
+---
+title: "LightningStrikes_with_Poisson_and_Bayes"
+author: "Melanie Fischer, Lisa Berghäuser"
+date: "7 Dezember 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Homework 5
+
+## Task 
+*"Prepare a R Markdown-based .html (groups of 2) containing documented R code on a problem where you learn via Bayes' Rule the mean rate of events from a set of data containing counts of these events (see PDF of Session 6). Plot the prior, likelihood, and posterior. You can use Dave's telephone calls as an example, but are free to generate your own example of an application to natural hazards."*
+
+## Solution 
+**Case Study:** The data contains fictional counts of lightning strikes per day (vector **lightningCount**). As we do not know the prior, we estimate it. The maximum value that can be achieved here is 1440 lightning counts per day, given the case that there is one lightning strike every minute for 24 hours. The prior lambda is saved in **prior_lambda**. **prior_prob** estimates the probability of a lightning strike per minute (each 0.00069). 
+
+```{r}
+lightningCount <- c(0, 5, 1, 10, 2, 0, 1, 50, 1, 200) 
+prior_lambda <- 0:1440
+prior_prob <- rep(1/length(prior_lambda), length(prior_lambda))
+```
+
+With **dpois** function we estimate the likelihood with a poisson distribution of a **lightningCount** given **prior_lambda**, aka of the number of lightnings per day given by our fictional data given its occurence probability. 
+The likelihood can also be estimated by estimating the poisson distribution for each lightning strike per day and the occurence probability step by step. This is achieved in a for loop and the result is written into **likelihood2**. An open question here is, which estimation is correct. Therefore, both are presented but only the second one is used in the further workflow. 
+```{r}
+likelihood1 <- dpois(lightningCount, prior_lambda)
+likelihood2 <- rep(NA, length(prior_lambda))
+
+for (i in seq_along(prior_lambda)){
+  likelihood2[i] <- prod(dpois(lightningCount, i))
+}
+```
+
+With the occurence probability estimated in **prior_prob** and the likelihood estimated with the poisson distribution in **likelihood2** the posterior can be calculated. It is then subsequently normalized by division with its sum. 
+```{r}
+numBayes <- likelihood2*prior_prob
+posterior <- numBayes/sum(numBayes)
+```
+
+## Plotting of the results
+
+The plots show the frequencies of the data, prior, the likelihood and the posterior for each lightning stroke per day given by our data. 
+
+Plotting of the posterior shows that given our data a lightning stroke count per day of 25 to 30 is most likely. 
+```{r}
+par(mfrow=c(4,1), mar=c(4,3,1,1), las=2)
+plot(table(lightningCount), main= "Data: Lightning Strikes", type ="h")
+plot(prior_prob, type = "h", main= "Prior", xlim = c(0, 250), xlab = "Lightning strikes per day (axis limited to 250)")
+plot(likelihood2, type = "h", main="Likelihood", xlim = c(0, 250), xlab = "Lightning strikes per day (axis limited to 250)")
+plot(posterior, type = "h", main="Posterior", xlim = c(0,250), xlab = "Lightning strikes per day (axis limited to 250)")
+```
