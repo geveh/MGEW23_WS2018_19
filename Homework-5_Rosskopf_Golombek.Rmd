@@ -1,0 +1,85 @@
+---
+title: "Homework 5 - Bayes' Rule with the Example of Volcanic Eruptions"
+author: "Martina Rosskopf & Nina Golombek"
+date: "5.12.2018"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Task
+Prepare a R Markdown-based *.html containing documented R code on a problem where you learn via Bayes' Rule the mean rate of events from a set of data containing counts of these events. 
+Plot the prior, likelihood, and posterior. You can use Dave's telephone calls as an example, but are free to generate your own example of an application to natural hazards. Please upload your commented script to the GitHub repository.
+## Example from Natural Hazards
+For this exercise we choose the example of vulcanic eruptions. Therefore, we define a vector **erup**, which gives us for ten independet years the number of worldwide eruptions over the course of one year. **prior_lambda** is set between 1 to 150 because in average, there are between 50 to 80 volcanic eruptions per year. **prior_prob** is the probability that a specific number of eruptions occur. All numbers of eruptions have the same probability, which gives us 150 possibilties with a probability of $\frac{1}{150}$.
+```{r}
+erup <- c(50, 89, 77, 103, 70, 45, 63, 99, 67, 81)                          # Nr. of eruptions per year
+prior_lambda <- 1:150
+prior_prob <- rep(1 / length(prior_lambda), length(prior_lambda))
+```
+The following plot shows the probability of eruptions if we have no knowledge about previous years. 
+```{r}
+plot(prior_prob, type = "h", lwd = "2",  col = "orange",
+     main = "Propability of Eruptions per year",
+     xlab = "Annual Rate of Volcanic Eruptions",
+     ylab = "Probability for Volcanic Eruption",
+     cex.lab = 1, cex.main = 1.5)
+```
+
+
+In the next step we would like to show the likelihood for such an event. 
+First we define a vector **likeli** that has the length of the **prior_lambda** vector, in our case 150. By going from 1 to 150 we calculate the likelihood for each number which represents the amount of eruptions per year.
+
+```{r}
+likeli <- rep(NA, length(prior_lambda))
+for (i in 1:length(prior_lambda)){
+  likeli[i] <- prod(dpois(erup, i))
+}
+```
+After those calculations we can plot the likelihood agains the amount of eruptions.
+```{r}
+plot(prior_lambda, likeli, type = "h", lwd = "2",  col = "red",
+     main = "Likelihood for Number of Volcanic Eruptions in one year",
+     xlab = "Index",
+     ylab = "Likelihood",
+     cex.lab = 1, cex.main = 1.5)
+```
+
+
+Now we want to calculate the posterior for our case which can be done by the following code: 
+
+First we multiply the likelihood with the evidences of each possibility. After that we re-normalize them and plot them against the possible annual rates. This gives us a final distribution of our problem related to the given eruptions for ten independent years.
+
+```{r}
+posterior <- likeli * prior_prob
+posterior <- posterior / sum(posterior)
+plot(prior_lambda, posterior, type = "h", lwd = "2",  col = "chocolate",
+     main = "Distribution of Number of Volcanic Eruptions in one year",
+     xlab = "Index",
+     ylab = "Probability",
+     cex.lab = 1, cex.main = 1.5)
+```
+
+
+## Other solution found during the class
+We also tried to develope a different approach in class (which seems to have some kind of error since the result differs from the one above). 
+
+We definded a matrix **like** with the dimensions of our **erup** vector and **prior_lambda** and fill it with empty values (NA). Than we generated a for-loop that writes all values into the matrix.
+
+```{r}
+like <- matrix(NA, length(erup), length(prior_lambda))
+for (i in 1:length(erup)){
+  like[i,] <- dpois(prior_lambda, erup[i])
+}
+```
+Ultimatly we plot the collumns of our **like** matrix and multiply each entry.
+```{r}
+plot(apply(like, 2, prod), type ="h", lwd = "2",  col = "blue",
+     main = "Distribution of Number of Volcanic Eruptions in one year",
+     xlab = "Index",
+     ylab = "Probability",
+     cex.lab = 1, cex.main = 1.5)
+```
+
+We think that this result should give us the likelihood of the different possibilities, but it differs from the one above. It also can't be the posterior because the sum is not 1 and we haven't done anything with the **prior_prob** yet.
