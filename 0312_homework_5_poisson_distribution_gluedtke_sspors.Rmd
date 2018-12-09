@@ -1,0 +1,132 @@
+---
+title: "Poisson Distribution"
+author: "Gwendolin Luedtke, Sina Spors"
+date: "03 December 2018"
+output:
+  html_document:
+    highlight: textmate
+    code_folding: show
+    theme: spacelab #cerulean, journal, flatly, darkly, readable, spacelab, united, cosmo, lumen, paper, sandstone,                       simplex, and yet
+    toc: true #add table of contents, possible to modify toc_depth: 1-3
+    toc_float: #floating table of contents will always be visible even when the document is scrolled
+      collapsed: false #controls whether the TOC appears with only the top-level (e.g., H2) headers. If collapsed                            initially, the TOC is automatically expanded inline when necessary
+      smooth_scroll: true #controls whether page scrolls are animated when TOC items are navigated to via mouse                                 clicks
+      
+---
+
+<style>
+body {
+text-align: justify} 
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+*Calculate the mean rate of events from a set of data containing counts of these events via Bayes' Rule.*
+
+In order to calculate the mean rate of events from a data set that contains the number of counts of these events in a fixed time interval you have to use the **Poisson distribution** in combination with the **Bayes' Rule**. The Poisson distribution is a discrete probability distribution that is used for the calculation of the probability of a given number of events in a specified interval (known expectation rate) assuming that these events are independent.
+
+## Data Basis
+
+Landslide data were obtained from the international disaster database [EM-DAT](https://www.emdat.be/). The data set includes recorded landslides that occurred in China from 1980 to 2017. The number of landslides per year is given (condition for using Poisson distribution).
+
+After importing the obtained CSV-file in R by using ```read.csv()```, a vector containing the number of landslides per year is extracted by converting a data frame to a vector. 
+```{r, eval = FALSE}
+#import csv file
+dat <- read.csv("china_landslides.csv", header = TRUE, sep = ";")
+
+#select rows and col simultaneously 
+dat_ls <- dat[c(42:79),c(1,4)]
+
+#class(dat_ls) #type of an object
+#str(dat_ls)
+#length(dat_ls)
+
+#change class or type of an object
+#from data frame to vector
+dat_ls_matrix <- as.matrix(dat_ls)
+dat_ls_vector <-as.vector(dat_ls_matrix)
+
+#transformation to numeric data
+landslide <- as.numeric(dat_ls_vector[39:76]) #occurence from 1980 to 2017
+
+```
+```{r, echo = FALSE}
+landslide <- c(5,  8,  7,  9,  6, 15, 11, 16, 18, 14, 18, 13, 18, 18, 18, 15, 20, 21, 18, 21, 29, 33, 29, 27, 24,
+26, 32, 37, 20, 30, 26, 26, 20, 28, 43, 41, 36, 33, 30) 
+```
+
+
+## Basics Calculation
+
+Instead of using static or interactive single values, we are going to use **vectors ** to calculate the posterior-rate (Bayes' Rule).
+ $$p(\lambda|D)=\frac{p(D|\lambda) p(\lambda)}{p(D)}$$ 
+ 
+with:
+ 
+* D = yearly number of landslides observed in China (from 1980 to 2017) and
+  
+* $\lambda$ = means
+ 
+## Definition of Prior and Likelihood
+First of all, *Prior* is defined by choosing reasonable values. Before choosing a range of values for $\lambda$, minimum and maximum values of the obtained data are calculated.
+```{r,}
+min <- min(landslide)
+max <- max(landslide)
+```
+```{r, echo = FALSE}
+cat("Minimum: ", min)
+cat("Maximum: ", max)
+```
+The lower limit of prior is set to *0* since years without landslides are possible. Due to the maximum  value of our data, the upper limit is set to *100*. Therefore we need to define a variable with a range from *0* to *99*, to ensure a variable with at least 100 values. This results in the following vector:
+```{r}
+#p(lambda)
+prior <- 0:99 # 100 values
+
+plot(prior, type="h", main = "Annual number of landslides", xaxt="n", xlab = "", ylab = "", lwd = 2, col = "darkblue")
+```
+
+
+We assume that these data (values for $\lambda$) are equally likely (with more information we could change the probability distribution). 
+So a discrete uniform probability distribution (```prior```) is calculated by repeating each probability.
+
+
+```{r}
+prior_prob <- rep(1/length(prior),times = length(prior)) 
+#plot the discrete uniform probability distribution
+plot(prior_prob, type="h", main = "Prior", xlab ="Annual number of landslides", ylab = "Prior", lwd = 2, col = "darkblue")
+```
+
+In order to define the *Likelihood*, we have to multiply the Poisson distribution for each $\lambda$/ mean value since we assume that the events are independent of each other. The Poisson distribution is calculated by using the function ```dpois()```. The vector containing the yearly number of landslides as well as the prior-vector (means) are the input values. We use a loop where the minimum and maximum lambda values are the limits. This is determined by ```seq_along```. The diagram shows that the probability settles to a concrete value. This is caused by the Poisson distribution since the probabilities are all independent of each other. (The most likely values are striking) 
+
+```{r}
+#p(D|k)
+#create a vector with the same number of entries as in "prior"
+likeli <- rep(NA,length(prior))
+#using a loop for the calculation
+for (i in seq_along(prior))
+{
+  likeli[i] <- prod(dpois(landslide,i))
+}
+
+plot(likeli,type ="h", main = "Likelihood", xlab ="Annual number of landslides", ylab = "Likelihood", lwd = 2, col = "darkblue")
+```
+
+## Calculation of the Posterior Rate
+
+In order to calculate the **Posterior rate** we do not have to calculate the **Evidence** but renormalize the product of Likelihood and Prior:
+
+
+```{r}
+#Posterior
+bayes_rate <- likeli * prior_prob
+bayes_rate <- bayes_rate/ sum(bayes_rate)
+
+plot(bayes_rate, type = "h", main = "Posterior", xlab ="Annual number of landslides", ylab = "Posterior", lwd = 2, col = "darkblue") 
+```
+
+The shape of the distribution is exactly the same (see graphic "Likelihood") when a flat probability is used. 
+The only difference is that the probabilities in the *Likelihood Plot* are much smaller. Similar to the Poisson distribution, the probabilities of the Bayes' Rule are also considered independently of each other. This implies that neither an equal distribution nor a conditional probability curve is generated.
