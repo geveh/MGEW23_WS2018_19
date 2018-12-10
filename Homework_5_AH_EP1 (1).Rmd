@@ -1,0 +1,71 @@
+---
+title: "Homework_5"
+author: "Andrea Hemmelmann - Eric Parra"
+date: "7 de diciembre de 2018"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Homework Nº5
+
+## Task
+
+Prepare a R Markdown-based containing documented R code on a problem where you learn via Bayes' Rule the mean rate of events from a set of data containing counts of these events. Plot the Prior, Likelihood, and Posterior. 
+
+## Bayes' Rule
+
+First, we know the bayes ecuation is:
+
+p(H|D) = (p(D|H)) p(H)) / p(D)
+Posterior= (Likelihood*Prior)/Evidence
+
+## Solution
+
+For this excercise we created the following example:
+
+Accordingly to the "Centro sismológico Nacional" the number of perceiving earthquakes per month (2017) are as follow:
+
+J= 25; F= 30; M= 22; A= 92; M= 25 ; J= 24; J= 25; A= 21; S= 20; O= 18; N= 20; D= 30
+
+Giving these indepedent events we calculated at first the Prior and the  Likelihood of these events to finally calculate the Posterior.
+
+```{r}
+
+earthquakes <- c(25,30,22,92,25,24,25,21,20,18,20,30) # number of Earthquakes per months in 2017.
+
+mean_eq <- mean(earthquakes) # to have a comparation we calculate the mean of Eartquakes in a year = 29.3
+print(mean_eq)
+
+#Prior
+
+prior_lambda <- 0:720 # It considers one earthquake per hour,so in a month we can have a Minimum of 0 or a Maximum of 720 Eartquakes
+
+prior_prob <- rep(1/length(prior_lambda),length(prior_lambda)) # (0.0014)
+
+plot(prior_prob, type = "h", xlab= "Monthly rate of earthquakes")
+
+#Calculation of the Likelihood for each event
+
+earth_likeli <- rep(NA,length(prior_lambda))
+
+for(i in seq_along(prior_lambda)){
+  earth_likeli[i] <- prod(dpois(earthquakes,i))
+}
+
+plot(earth_likeli,type="h")
+
+#After that , to calculate the Posterior we multiplied the Likelihood with the prior and then normalized it.
+
+Bayes_num <- earth_likeli*prior_prob
+posterior <- Bayes_num/sum(Bayes_num)
+
+plot(posterior, type = "h")
+
+```
+
+The last plot (Posterior) shows the Poisson distribution of the mean rate of earthquakes given the data we used (mean earthquakes per month in Chile in 2017). Here we can say that the most likely amounts of earthquakes per month is about 30 earthquakes.
