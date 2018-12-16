@@ -1,0 +1,259 @@
+---
+title: "Glacial Lake Outburst Floods (GLOF)"
+author: "Sina Spors, Gwendolin Luedtke"
+date: "12 Dezember 2018"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<div style="text-align: justify;"> 
+
+*GLOF researcher G. has compiled data on 39 glacier outburst floods (GLOFs) in the entire Himalayas in the past three decades. However, he did not find any evidence of GLOFs in a neighbouring mountain belt. What is the average annual GLOF rate there (annual rate of GLOFs per year for an area with no observed events). Use an exponential prior, and compute the likelihood and posterior.*
+
+## Data Basis
+
+The existing data are taken from the given situation: 39 outburst floods were observed in the entire Himalayas in the past 30 years. Therefore, the annual GLOF rate in this area can be calculated:  
+
+```{r}
+#data on GLOFs
+#number of observed GLOFs in 3 decades
+glofs <- 39
+
+#annual GLOF rate
+glof_rate <- 39/30
+```
+
+However, we are looking for the GLOF rate in the neighboring mountain belt. To tackle this problem, we need data for this study area. We know, that there are no evidences of GLOFs occurring in the new study area in the past 30 years. Therefore, the next step is to replicate zero values in the borders between 0 and 30 to give the "observed" number of GLOFs per year in a 30-year period. This does not necessarily mean that the annual rate there is zero!
+
+```{r}
+# unknown: GLOF rate in the neighbouring mountain belt
+# Data? 
+#create a vector with 30 zeros
+dat <- rep(0,30)
+```
+
+
+##Identify Prior Believe
+
+First of all, the Prior on GLOFs rate is defined. The definition of the Prior assumption is possible **without** having any data. The Prior should capture all possible and reasonable annual rates. By using smaller steps for possible GLOFs rates (decimals instead of integers), more probabilities are considered. In addition to a finer mesh, a exponential Prior should be used so that smaller rates are in favor and computation is reduced (in our Prior believe smaller rates are more important than higher rates). By using the function ```rexp()``` random numbers are created that are exponentially distributed. Due to the exponential distribution, smaller values are more likely than higher values and thus very dense and nearly continuous. 
+
+In the next step, you have to give a weight to these outcomes (define ```prior_prob```). In order to determine the probability of the prior, the function ```dexp``` is used. Finally, the calculated probability is divided by the sum of the probabilities.
+```{r}
+#Prior on GLOF rates
+#prior is now exponentially distributed 
+#rate of 0.5
+prior <-rexp(1000, rate = 1)
+
+#probability distribution
+prior_prob <- dexp(prior, rate = 1) 
+
+# renormalise
+prior_prob <- prior_prob/sum(prior_prob)
+```
+
+
+## Definition of Likelihood
+
+With data and Prior (see above), we can now compute the likelihood (of having specific annual GLOF rates). The **Poisson distribution** is applied in order to calculate the mean rate of events from a data set that contains the number of counts of these events in a fixed time interval.
+
+In order to define the **Likelihood**, we have to multiply the Poisson distribution for each mean value since we assume that the events are independent of each other. The Poisson distribution is calculated by using the function ```dpois()```. The vector containing the yearly number of GLOFs as well as the prior-vector (means) are the input values. 
+
+```{r}
+
+#create a vector with the same number of entries as in "prior"
+likeli <- rep(NA, length(prior))
+
+for (i in seq_along(prior)) {
+ likeli[i] <- prod(dpois(dat, prior[i]))
+}
+
+```
+
+
+## Define the Posterior
+
+In order to calculate the **Posterior rate** we do not have to calculate the **Evidence** but renormalize the product of Likelihood and Prior.
+
+```{r}
+#Posterior
+posterior <- likeli*prior_prob
+posterior <- posterior/sum(posterior)
+
+```
+
+```{r, echo=FALSE}
+max1 <- max(posterior)
+mean1 <- mean(posterior)
+```
+
+## Plot
+
+```{r}
+# Plot
+par(mfrow = c(3,1))
+plot(prior,prior_prob, type = "h", xlab = "Annual rate of GLOFs", ylab = "Prior Probability", lwd = 1)
+abline(v = glof_rate, lty = 2, col = "red")
+plot(prior, likeli, type = "h", xlab = "Annual rate of GLOFs", ylab = "Likelihood", lwd = 2)
+abline(v = glof_rate, lty = 2, col = "red")
+plot(prior, posterior, type = "h", xlab = "Annual rate of GLOFs", ylab = "Posterior Probability", lwd = 2)
+abline(v = glof_rate, lty = 2, col = "red")
+
+```
+
+
+## Additional Contraint on the Prior
+
+*Assume that G. is 95% certain that the average GLOF rate in any Asian mountain belt is five per year at the most. How does this affect the posterior estimate?*
+
+In the following part, we have to take into account an additional constraint on the Prior. The rate $\lambda$ of an exponential distribution that gives us a Prior with 95 % < 5 GLOFs per year should be calculated. By using this Prior, the new Posterior probability has to be calculated. 
+
+The **probability density function** of an exponential distribution looks as the following
+
+$$P(x) = \lambda e^{-x\lambda}$$
+
+
+with $\lambda$ = rate parameter.
+
+The area under the curve P(x) represents the probability p. Therefore, an integral calculation must be made and the equation has to be resolved to $\lambda$. The lower and upper integration limits are represented by a (0) and b (5), respectively.
+
+$$\int_a^b P(x) dx = \int_a^b \lambda e^{-x\lambda} dx = 0.95  $$
+
+Since $\lambda$ represents a constant in this case, it can be pulled before the integral.
+
+ $$ \lambda \int_a^b  e^{-\lambda»x} \,dx= p$$
+
+Thereafter, the integral is determined and set within the predetermined integration limits a and b.
+
+$$\lambda (\frac{-1}\lambda) [e^{-\lambda x}]^b_a = p$$
+
+
+
+
+$$-1 (e^{-\lambda*b}-e^{-\lambda*a}) = p$$
+
+Rearranging
+
+
+$$ \lambda = \frac{ln (1- p)}{-b+a}$$
+
+With the help of the just solved equation it is now possible to calculate $\lambda$.
+
+```{r}
+#probability
+p <- 0.95 
+#lower integration limit
+a <- 0
+#upper integration limit
+b <- 5
+temp <- log(1-p, base = exp(1))
+lambda <- (temp)/(-b+a)
+print(lambda)
+```
+
+By using Shiny inputs and outputs, the lower and upper limit of integration (a and b, respectively) as well as the quantity of probability (p) can be changed by using slider inputs. This should result in an automatically updated $\lambda$ as well as Posterior rates.
+
+
+```{r eruptions, echo=FALSE}
+sidebarLayout(
+  sidebarPanel(
+    inputPanel(
+    sliderInput("min_bound", label = "Lower limit:",
+              min = 0, max = 10, value = 0),
+  
+    sliderInput("max_bound", label = "Upper limit:",
+              min = 1, max = 10, value = 5),
+  
+    sliderInput("prob", label = "Probability of annual GLOF rates < specified upper limit",
+              min = 0.50, max = 1, value = 0.95, step = 0.01)
+    )
+  ),
+  
+  mainPanel(
+    renderPlot({
+  
+#calculation of rate lambda
+temp <- log(1-input$prob, base = exp(1))
+lambda <- (temp)/(-input$max_bound+input$min_bound)
+print(lambda)
+prior <- rexp(1000, rate = lambda) 
+prior_prob <- dexp(prior, rate = lambda)
+prior_prob <- prior_prob/sum(prior_prob)
+
+#Likelihood 
+likeli <- rep(NA, length(prior))
+
+for (i in seq_along(prior)) {
+ likeli[i] <- prod(dpois(dat, prior[i]))
+}
+
+#Posterior
+posterior <- likeli*prior_prob
+posterior <- posterior/sum(posterior)
+
+par(mfrow = c(3,1))
+plot(prior,prior_prob, type = "h", xlab = "Annual rate of GLOFs", ylab = "Prior Probability", lwd = 1)
+abline(v = glof_rate, lty = 2, col = "red")
+plot(prior, likeli, type = "h", xlab = "Annual rate of GLOFs", ylab = "Likelihood", lwd = 2)
+abline(v = glof_rate, lty = 2, col = "red")
+plot(prior, posterior, type = "h", xlab = "Annual rate of GLOFs", ylab = "Posterior Probability", lwd = 2)
+abline(v = glof_rate, lty = 2, col = "red")
+
+})
+  )
+)
+
+
+```
+
+```{r,echo=FALSE}
+dat <- rep(0,30)
+#probability
+p <- 0.95 
+#lower integration limit
+a <- 0
+#upper integration limit
+b <- 5
+temp <- log(1-p, base = exp(1))
+lambda <- (temp)/(-b+a)
+
+
+prior <- rexp(1000, rate = lambda) 
+prior_prob <- dexp(prior, rate = lambda)
+prior_prob <- prior_prob/sum(prior_prob)
+
+#Likelihood 
+likeli <- rep(NA, length(prior))
+
+for (i in seq_along(prior)) {
+ likeli[i] <- prod(dpois(dat, prior[i]))
+}
+
+#Posterior
+posterior_2 <- likeli*prior_prob
+posterior_2 <- posterior_2/sum(posterior_2)
+
+max2 <- max(posterior_2)
+mean2 <- mean(posterior_2)
+```
+
+How does the additional constraint on the prior affect the posterior estimate? Comparison of the initial Posterior with the Posterior with an additional constraint (probability of 95 % that annual GLOF rate < 5):
+
+```{r, echo=FALSE}
+print("Maximum Posterior (lambda = 1): ")
+print(max1)
+print("Maximum Posterior with an additional constraint (lambda = 0.5991): ")
+print(max2)
+
+print("Mean Posterior (lambda = 1): ")
+print(mean1)
+print("Mean Posterior with an additional constraint (lambda = 0.5991): ")
+print(mean2)
+```
+
+
+</div>
+
