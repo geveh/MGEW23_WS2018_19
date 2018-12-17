@@ -1,0 +1,288 @@
+---
+title: "Refining the prior for Bayes´ theorem"
+author: "Rebecca Amberger and Nora Krebs"
+date: "13 Dezember 2018"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Task of the week
+
+GLOF researcher G. has compiled data on 39 outburst floods in the entire Himalayas in the past three decades. However, he did not find any evidence of GLOFs in a neighbouring mountain belt. What is the average annual GLOF rate there, if you assume that G. is 95% certain that the average GLOF rate in any Asian mountain belt is five per year at the most.
+
+Calculate the problem, by using Bayes´ theorem with an exponential. Compute the likelihood, and posterior. Make sure your exponential prior is such that a value of 5 or less is drawn with a probability of 95%
+
+## Analyzing the given problem
+
+For solving the problem, we can use Bayes' law:
+
+$$P(A|B)=\frac{P(B|A)*P(A)}{P(B)}$$
+Bayes´ theorem can be literally expressed as:
+
+$$posterior=\frac{likelihood*prior}{evidence}$$
+To achieve a good posterior result, it is important to insert a refined prior. Even if, like in the GLOF case, only little is known about the issue, the amount of values and their probability should be further specified.
+
+In this specific case, the rate $\lambda$ is the number of GLOFs per year. The different possible rates of GLOFs should best be sampled exponentially and should have an exponential distribution. In this way a small rate stays more likely than a high one and there are more "rate-options" to choose from at low rate-levels. This ensures that the head of the function contains an almost continuous dataset, while the less important tail is missing data (see function plots)
+
+Concerning the given problem, we are dealing with 5 rockfalls per year. To apply the rate to a year, which has 365 days, we should calculate the rate as (5_rockfalls/365_days). In this case the rate we are looking for would equal ~0.0137.
+All probabilities of cases with less than/equal 5 rockfalls per year (higher than 5/365) should add up to 95%. 
+
+## Input values
+
+```{r}
+# number of days of one year
+days <- 365
+
+#amount of input rates lambda
+counts <- 1000
+
+#number of GLOFs per year
+glof_rate <- 5
+
+#probability that G.´s statement is right
+G_right <- 0.95
+```
+
+## Solving the problem
+
+To solve the problem, we ran our code for different rates in the dexp() command. Since we knew, that a dexp()-rate between 1000 and 10000 would lead to a probability sum of 95%, we ran the loop only for these values.
+
+###Compting the prior
+
+```{r}
+#we chose to create a prior dataset with exponential rate sampling. 
+#The sampling has been conducted at a rate of 10 (fixed value)
+prior <- rexp(counts, rate = 10)
+
+#we wanted to run the following dexp()-command for rates between 1000 to 10000 
+#and therefore created an according vector:
+possible_rate <- (1000:10000)
+
+#to calulate dexp with all rates, we created a loop, that was supposed to stop,
+#as soon, as the sum of the GLOF-rate probabilities,higher than 5/365 reached 95%.
+for(val in possible_rate) {
+ 
+#dexp creates an exponential probability distribution of the input GLOF-rates:
+prior_prob <- dexp(prior, rate = val)
+#renormalizing the probabilities to 100%:
+prior_prob <- prior_prob / sum (prior_prob)
+
+
+#first we want to create a vector where we can store all the prior event 
+#probabilities, which are equally, or more probable than 5/365, 
+#because a rock fall event of >5 rocks per year is less likely than a rate of 5/365:
+sum_stop <- rep(NA,counts)
+
+#now we want to store all the concerning probabilities in the vector sum_stop, 
+#or else store a 0:
+for(i in 1:counts) {
+  if(prior_prob[i] >= (glof_rate / days)) {
+    sum_stop[i] <- prior_prob[i]
+  } else {
+    sum_stop[i] <- 0
+  }
+}
+
+# G_sure is the sum of all probabilities of the concerning GLOF rates:
+G_sure <- sum(sum_stop)
+
+#the general loop is supposed to stop calculations, as soon, as the dexp()-rate is
+#reached, where the sum of all GLOF-Probabilities is for the first time higher than
+#95%:
+if (G_sure <= G_right){
+next
+} else {
+break
+}
+}
+
+```
+
+###Computing the likelihood
+Now that a good prior has been approached, we can compute the likelihood. Since the occurrence of GLOFs is independent from eachother, we can use the Poisson distribution. 
+
+```{r}
+#first we have to create a container, where all the likelihood data can be stored in
+likeli <- rep (NA, length(prior))
+
+#then we have to creat a vector of zeros, toserve as quantiles in the dpois()
+#command.
+dat <- rep(0, days)
+
+#now we can calculate the likelihood by using the Poisson-distribution command
+#(dpois()) and by weighting the different priors by multiplying all the
+#probabilities.
+for (i in seq_along(prior)) {
+  likeli[i] <- prod(dpois(dat, prior[i]))
+}
+```
+
+###Computing the posterior
+
+For computing the posterior, we can use Bayes´ theorem, which we introduced at the beginning. 
+
+```{r}
+#the posterior can be calculated by multiplying the likelihood with the probability
+#of the prior.
+posterior <- likeli * prior_prob
+#renormalizing the posterior, so all probabilities add to 1:
+posterior <- posterior / sum(posterior)
+
+#To evaluate our result, we can calculate the probability of all events, which do
+#not include no GLOF per year:
+non_zero <- 1 - max(posterior)
+```
+
+###Plotting the functions
+```{r}
+#In the plot we want to show all plots (of prior, likelihood and posterior) 
+#on one page:
+par(mfrow = c(3, 1))
+
+#prior plot:
+plot(prior, prior_prob, type = "h", main = "Prior",
+     xlab = "glof rates", ylab = "prior probability of glofs")
+
+#likelihood plot
+plot(prior, likeli, type = "h", main = "likelihood",
+     xlab = "glof rates", ylab = "likelihood of glofs")
+
+#posterior plot
+plot(prior, posterior, type = "h", main = "Posterior",
+     xlab = "glof rates", ylab = "probability of glofs")
+
+```
+
+###Reviewing the results
+Now in the final R-code part we want to print all important values to get a quick overview of all important outcomes of our computing.
+```{r}
+#probability that there are more than 0 GLOFs per year.
+non_zero
+
+#the total sum of all probabilities of all possibilities with not more than 5 GLOFs per year (should be ~95%):
+G_sure
+
+#the rate that has been used in dexp() to create a sum of probabilities that 
+#add to 95%:
+possible_rate[val]
+```
+
+###Discussion of the results
+Although the rsulting data fits to the presumptions, the used rate in the dexp() command is quite high, which makes the corretness of the solution unlikely. This might be caused by the input assumed rate of 5 GLOFs per 365 days. However, this assumption was taken, since the rate would have otherwise been higher than 1 (5GLOFs/1year = 5) and would have coused problems in later calculations. 
+
+##Creating a shiny app
+
+```{r}
+# Starts a shiny app:
+library(shiny)
+
+# Defines user interface for application that draws a plot:
+ui <- fluidPage(
+  
+  # Application title
+  headerPanel("Refining the prior rate for better posterior outcomes in Bayes´ theorem calculations"),
+  # Authors and title
+  titlePanel("Interactive Application by Rebecca Amberger and Nora Krebs"),
+  #Date
+  titlePanel("created on: 13/12/2018"),
+  
+  # Application description
+  pre("In Natural Hazards, dpendent probabilities, which have independent inpt-probabilities can be calculates using Bayes´ theorem and the Poisson distribution. The result can be even enhanced, if the input is refined. This app intends to show how a change in the picking rate of an exponential prior distribution can change the final result (posterior)." ),
+  
+ # Layout of the Sidebar with input(prediction rate) and output (wrong forecast):
+  sidebarLayout(
+    #sidebar panel for inpu:
+    sidebarPanel(
+      #first we want to describe the specific topic:
+      helpText("In the following problem we consider large glacier outburst floods (GLOFs), which can appear in mountaineous areas. Given, that a researcher is 95% sure that Asian mountain ranges do not suffer from more than 5 GLOFs per year, the following rate selection pannel is supposed help to visualize the effect of different prior input distributions on the posterior GLOf range result in an undefined mountain range of Asia."),
+      
+      #Input: slider to set a certain picking rate of the dexp() command
+      sliderInput(inputId = "possible_rate",
+                  label = "rate of the exponential prior possibility distribution:",
+                  min = 1000,
+                  max = 10000,
+                  value = 4171)
+    ),
+
+    # Main panel shows a plot that displays the output
+    mainPanel(
+      # Output: Posterior of GLOF occurrence:
+      plotOutput(outputId = "Posterior"),
+      textOutput(outputId = "non_zero"),
+      textOutput(outputId = "G_sure"),
+      textOutput(outputId = "pr")
+    )
+  )
+)
+```
+
+```{r}
+# Define requirements which are needed by server to draw a plot
+server <- function(input, output) {
+  
+  #making the plot interactive, so it is re-drawn after the input has been changed 
+  #(by using the 'renderPlot'-function):
+  output$Posterior <- renderPlot({
+    
+    #as described in the Markdown-file, we are calculating now the posterior
+days <- 365
+counts <- 1000
+glof_rate <- 5
+G_right <- 0.95
+
+dat <- rep(0, days)
+
+prior <- rexp(counts, rate = 10)
+
+prior_prob <- dexp(prior, rate = input$possible_rate)
+prior_prob <- prior_prob / sum (prior_prob)
+
+
+sum_stop <- rep(NA,counts)
+for(i in 1:counts) {
+  if(prior_prob[i] >= (glof_rate / days)) {
+    sum_stop[i] <- prior_prob[i]
+  } else {
+    sum_stop[i] <- 0
+  }
+}
+G_sure <- sum(sum_stop)
+pr <- possible_rate[input$possible_rate]
+
+likeli <- rep (NA, length(prior))
+for (i in seq_along(prior)) {
+  likeli[i] <- prod(dpois(dat, prior[i]))
+}
+
+posterior <- likeli * prior_prob
+posterior <- posterior / sum(posterior)
+non_zero <- 1 - max(posterior)
+       
+    #creates a graph with axes, titles, etc., while "type=0" indicates that points are not plotted yet
+    #and "log=x" indicates that the 'Event Occurrence' is plotted on a logarithmic scale and indicates all
+    #further settings of the plot (caption, axis labels, magnification of labels/caption)
+plot(prior, posterior, type = "h", main = "Posterior",
+     xlab = "GLOF rates", ylab = "probability of GLOFs",
+         cex.main = 1.4, cex.lab = 1.2)
+
+  })
+  
+output$non_zero <- renderText({ 
+paste("Probability of more than 0 GLOFs:", non_zero)})
+    
+output$G_sure <- renderText({ 
+paste("Probability of no more than 5 GLOFs:", G_sure)})
+    
+output$pr <- renderText({ 
+paste("Input rate for exponential sampling", pr)})
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+```
+Error: Object 'pr' not found
+It's not clear why 'pr' is not found, because it was introduced in the function-main-body of the shiny app. It was supposed to show the rate that is inserted in the exponential probabbility command for prior calculations.
