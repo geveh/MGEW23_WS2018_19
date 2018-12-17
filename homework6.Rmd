@@ -1,0 +1,158 @@
+---
+title: "Homework"
+author: "Melanie Fischer, Lisa Berghäuser"
+date: "13 Dezember 2018"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Task
+**Prepare a R Markdown-based Shiny app (groups of 2) containing documented R code on the problem of learning the annual rate of
+GLOFs (*G*lacial *L*ake *O*utburst *F*lood*s*) per year for an area with no observed events (see last question on last slide in PDF of Session 7). Use an exponential prior, 
+and compute the likelihood, and posterior. Make sure your exponential prior is such that a value of 5 or less is drawn with a probability of 95%. 
+Please upload your commented script to the GitHub repository. Make sure you include your names.** (ref: moodle2, session 7)
+
+## Solution
+The reactive inputs of our shiny app are defined in the user interface (*ui*) section of the code and we choose the *sliderInput()* function. 
+The choosen input parameters are:
+a) the count of GLOF events in a given observation period (starting value set to 0), 
+b) the length of the observation period in years (starting value set to 30), 
+c) the prior belief on the GLOF rate (in our case G. believes it is 5 so the starting value is set accordingly) and 
+d) the certainty of this prior belief (in our case G.'s prior belief has a certainty of 95% so the starting value was set 0.95)
+
+For the calculation of the prior and the prior probability we used an exponential random generation (*rexp*) to create the prior. 
+The rate of the rexp function (lambda) is estimated with the following equation:
+
+$$ Quant = \frac{ -ln(1-p) }{ \lambda } $$
+
+The quantile is equal to our prior belief of the GLOF rate (in our case 5) and the *p* is described by the certainty of this prior belief (in our case 0.95).
+Solving for lambda results in: 
+
+$$\lambda = \frac{ -ln(1-p) }{ Quant } $$
+
+This rate is also set in the density function of the exponential distribution, which is applied in the calculation of the prior probability (*prior_prob*). 
+With the prior probability
+the likelihood and the posterior can be estimated. The method and formulas for this have already been presented in previous homeworks. 
+The resulting prior probability, the related likelihood
+and the posterior are presented in 3 arranged plots. The code could be optimized, but the method of reactive values within shiny apps could not be implemented 
+in the available time frame. This, however, would only serve the readability and the style of the R code. The method and result is not affected. 
+Please find the shiny application below with its associated code. 
+
+```{r eruptions, echo=FALSE}
+library(shiny)
+
+# Define UI for application that draws a histogram
+ui <- fluidPage(
+
+  titlePanel("Learning Rate of GLOF Events from a Mountainbelt with no Observed Events"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("GLOFaccounts", 
+                  "GLOF Occurence in Observation Period", 
+                  min = 0, 
+                  max = 50, 
+                  value = 0), 
+      sliderInput("observationPeriod", 
+                  "Observation Period [years]", 
+                  min = 10, 
+                  max = 50,
+                  value = 30), 
+      sliderInput("priorBelief",
+                  "Prior Belief on GLOF rate per year:",
+                  min = 0,
+                  max = 20,
+                  value = 5),
+      sliderInput("certainty",
+                  "Certainty of Prior Belief:",
+                  min = 0,
+                  max = 1,
+                  value = 0.95)
+    ),
+    
+    # Show a plot of the generated distribution
+    mainPanel(
+      plotOutput("prior"),
+      plotOutput("likelihood"),
+      plotOutput("posterior")      
+    )
+ )
+)
+
+server <- function(input, output){
+ 
+   # create plot output for posterior probability
+   output$prior <- renderPlot({
+    # prior and prior probability with quantile
+    LambdaRate <- (-log( 1-input$certainty ) / input$priorBelief )
+    prior <- rexp(1000, rate = LambdaRate )
+    prior_prob <- (dexp( prior, rate = LambdaRate )) /sum( dexp( prior, rate = LambdaRate ) )
+    
+    likeli <- rep(NA, length(prior))
+    for(i in seq_along(prior)) {
+      likeli[i] <- prod(dpois((rep(input$GLOFaccounts, input$observationPeriod)), prior[i]))
+    }
+    
+    posterior <- (likeli*prior_prob)/sum(likeli*prior_prob)
+    
+    plot(
+    	prior, 
+    	prior_prob, 
+      type = "h", 
+      col = "darkblue", 
+      xlab = "Prior", 
+      ylab = "Prior Probability"
+      )
+  })
+  
+  output$likelihood <- renderPlot({
+    LambdaRate <- (-log( 1-input$certainty ) / input$priorBelief )
+    prior <- rexp(1000, rate = LambdaRate )
+    prior_prob <- (dexp( prior, rate = LambdaRate )) /sum( dexp( prior, rate = LambdaRate ) )
+    
+    likeli <- rep(NA, length(prior))
+    for(i in seq_along(prior)) {
+      likeli[i] <- prod(dpois((rep(input$GLOFaccounts, input$observationPeriod)), prior[i]))
+    }
+    
+    posterior <- (likeli*prior_prob)/sum(likeli*prior_prob)
+    plot(
+    	prior, 
+    	likeli, 
+      type="h", 
+      col= "darkblue", 
+      xlab = "Prior", 
+      ylab = "Likelihood"
+      )
+  })
+  
+  # create plot output for posterior
+  output$posterior <- renderPlot({
+  	
+    LambdaRate <- (-log( 1-input$certainty ) / input$priorBelief )
+    prior <- rexp(1000, rate = LambdaRate )
+    prior_prob <- (dexp( prior, rate = LambdaRate )) /sum( dexp( prior, rate = LambdaRate ) )
+    likeli <- rep(NA, length(prior))
+    for(i in seq_along(prior)) {
+      likeli[i] <- prod(dpois((rep(input$GLOFaccounts, input$observationPeriod)), prior[i]))
+    }
+    posterior <- (likeli*prior_prob)/sum(likeli*prior_prob)
+    
+    plot(
+    	prior, 
+      posterior, 
+      type = "h", 
+      col="darkblue", 
+      xlab = "Prior", 
+      ylab = "Posterior"
+      )
+  })
+ }
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+```
