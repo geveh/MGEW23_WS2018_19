@@ -1,0 +1,83 @@
+---
+title: "GLOF Rates Certainty"
+author: "Jan Michael Kärstens"
+date: "17.12.2018"
+runtime: shiny
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This week we deal with G., who is investigating Glacier Lake Outburst Floods (GOLF) in the Himalaya. After examining GOLF rates for Himalaya he is quite sure about what he's doing:
+
+>*Assume that G. is 95% certain that the average GLOF rate
+in any Asian mountain belt is five per year at the most.
+How does this affect the posterior estimate?*
+
+A Poisson Distribution is defined with the formula:
+$$ P = f * exp(- \lambda)$$ 
+Resolving the equation we get:
+$$\lambda = -ln(\frac{P} {f})$$
+*Where P is the certainty of G. (here 95% as default) and f the rate of GLOFs per year.*
+
+In the Sidebar Panels we can choose G.'s certainty in % and the GLOF rate per year.
+
+```{r eruptions, echo=FALSE}
+library(shiny)
+
+ui <- fluidPage(
+   sidebarPanel(
+  sliderInput("certainty", label = "Certaintiy Rate in %",
+              min = 0, max = 100, value = 95, step = 1),
+  
+  sliderInput("rate", label = "Number of GLOFs per year",
+              min = 0, max = 100, value = 5, step = 1)
+),
+  mainPanel(
+    plotOutput("prior"),
+    plotOutput("Probability")
+  )
+)
+
+server <- function(input, output){
+  #Output shall be given as a Plot
+  output$prior <- renderPlot({
+    #Defining lambda (rate)
+    lambda <- -log((input$certainty / input$rate))
+    #generates random exponential numbers, with a "rate", i.e. factor before the exponent
+    prior <- rexp(10000,rate = 10) 
+    #from 0 to 100 probabilities of amount of GLOFs decreases lineraly (just assumed, no data on it)
+    prior_prob <- dexp(prior, rate = lambda)
+#Normalizing prior probability
+prior_prob <- prior_prob / sum(prior_prob)
+
+#Likelihood for each scnearios (0 to 100 GLOFs), stored in matrix "likeli"
+likeli <- rep(NA, length(prior)) 
+
+for (i in seq_along(prior)) {
+  likeli[i] <- prod(dpois((input$rate), prior[i])) #Product of Poisson distributions with the rate prior at position i
+}
+
+#Posterior
+posterior <- likeli * prior_prob
+posterior <- posterior / sum(posterior)
+  
+  
+  plot(prior, prior_prob, type = "h", col = "chocolate", xlab = "Prior", 
+       ylab = "Prior Probability")
+})
+}
+
+
+
+shinyApp(ui = ui, server = server)
+```
+Unfortunately the plot is not working. I could not figure out the problem in time now...
+
+My further approach would be plotting the prior and (hopefully) agai receiving a declining exponential function. In the case with 5 GLOFs, we should have 95% of all GLOFs occuring in this range (i.e. max. 5 GLOFs per year). 
+
+
+
+
