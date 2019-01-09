@@ -1,0 +1,74 @@
+---
+title: "Homework 7"
+author: "Lisa Berghäuser, Melanie Fischer"
+date: "9 Januar 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Task 
+
+_A group of geoscience students use a tape to measure the long axis of a coral boulder stranded on a sandy beach. The students have collected n data points of the axis diameter x. We know that the tape measure is only accurate to a certain point, and assume, for the sake of simplicity, that all measurements come from the same Gaussian distribution. We express the spread of measurements with the distribution’s variance 2._ 
+
+_Given n measurements, what is the boulder’s most believable actual size? _ (ref: moodle2)
+
+### Solution
+
+As we assume a Gaussian distribution and with the lack of data we use __rnorm( )__ to create data. Therefore, for reproducability we use __set.seed( )__. The expected value __mu__ is 5.2 m in this example. We assume a variance of 0.1 m. The students may have taken 10 measurements. As real data is lacking, we use the expected value and the standard deviation (square root of variance) to create the data, saved in __dat__. The student measure a scale to mm, therefore the data is rounded to the fourth digit. 
+
+```{r echo=TRUE}
+set.seed( 666 ) 
+mu <- 5.2 
+variance <- 0.1
+n <-  10
+dat <- round( rnorm( n, mu, sqrt( variance ) ), digits = 4 )
+```
+
+We assume a range of boulder diameters: it has to have a value between 3.5 m and 6 m, evenly spread into 26 steps of 0.1 m, saved in __prior_mu__. This is our prior belief. Some of the values might have higher weights than others, as they are more realistic. This is assumed with a randomized weighting (with __runif( )__ to create values between 0 and 1 for each steps) to form the uninformed prior. Next step will be a normalizing of the prior to form a probability distribution, the prior probability __prior_prob__. 
+
+
+```{r echo=TRUE}
+prior_mu <- seq( 3.5, 6, 0.1 )
+weights_mu <- runif( length( prior_mu ) )
+prior_prob <- weights_mu / sum( weights_mu )
+
+```
+
+The likelihood __likeli__ is calculated by taking the products of each normal density function  __dnorm( )__, which are assigned for each value in __prior_mu__ with the created data __dat__ and the given __variance__. 
+According to Bayes' Theorem the posterior is calculated as the product of the likelihood and the prior probability.   
+
+```{r}
+likeli <- sapply( prior_mu, 
+                  function( x, Dat, Variance ) 
+                    {
+                    prod( dnorm( Dat, mean = x, sd = sqrt( Variance ) ) ) 
+                    },
+                  Dat = dat, 
+                  Variance = variance )
+posterior <- ( likeli * prior_prob ) / sum( likeli * prior_prob )
+
+
+```
+
+### Results
+The posterior's peak value gives the most believable mean boulder diameter of the prior belief, 5.2 m with our seed. Therefore, the measurement that is closest to 5.2 m is the most believable measurement. 
+
+```{r}
+par( mfrow = c( 3, 1 ) )
+plot( prior_mu, prior_prob, type = "h", xlab = "Prior Belief", ylab = "Prior Probability", col = "hotpink", lwd = 2 )
+plot( prior_mu, likeli, type = "h", xlab = "Prior Belief", ylab = "Likelihood", col = "hotpink", lwd = 2 )
+plot( prior_mu, posterior, type = "h", xlab = "Prior Belief", ylab = "Posterior", col = "hotpink", lwd = 2 )
+```
+
+Of the ten simulated student measurements, 5.19 m is the most believable boulder diameter.  
+
+```{r}
+Result <- prior_mu[ which( posterior == max( posterior ) ) ]
+( Result )
+sort( dat )
+dat[ which( abs( dat - Result ) == min( abs( dat - Result ) ) ) ]
+```
+
