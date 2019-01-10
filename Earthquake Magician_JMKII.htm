@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html class=""><head>
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="application/shiny-singletons"></script>
+  <script type="application/html-dependencies">json2[2014.02.04];jquery[1.12.4];shiny[1.2.0];selectize[0.11.2];bootstrap[3.3.7]</script>
+<script src="Earthquake%20Magician-Dateien/json2-min.js"></script>
+<script src="Earthquake%20Magician-Dateien/jquery.js"></script>
+<link href="Earthquake%20Magician-Dateien/shiny.css" rel="stylesheet">
+<script src="Earthquake%20Magician-Dateien/shiny.js"></script>
+<link href="Earthquake%20Magician-Dateien/selectize.css" rel="stylesheet">
+<!--[if lt IE 9]>
+<script src="shared/selectize/js/es5-shim.min.js"></script>
+<![endif]-->
+<script src="Earthquake%20Magician-Dateien/selectize.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="Earthquake%20Magician-Dateien/bootstrap.css" rel="stylesheet">
+<script src="Earthquake%20Magician-Dateien/bootstrap.js"></script>
+<script src="Earthquake%20Magician-Dateien/html5shiv.js"></script>
+<script src="Earthquake%20Magician-Dateien/respond.js"></script>
+
+</head>
+
+<body>
+  <div class="container-fluid">
+    Magician Michelle says that she can predict large megathrust 
+earthquakes... well, at least 95% of the time. Assume that these 
+earthquakes occur with a probability of 10^-5.How likely will Michelle 
+cause a false alarm with her next prediction?
+    <hr>
+    <div>
+      Given our scenario we have following probabilities:
+    </div>
+    <div>
+      <li>
+        <code># Probabilities</code>
+      </li>
+    </div>
+    <div>
+      <li>
+        <code> P_m &lt;- 0.95 # Prob. Michelle is correct</code>
+      </li>
+    </div>
+    <div>
+      <li>
+        <code> P_mc &lt;- 1-P_m # Prob. Michelle is wrong</code>
+      </li>
+    </div>
+    <div>
+      <li>
+        <code> P_e &lt;- (10^-5) # Prob. of Earthquake occurance</code>
+      </li>
+    </div>
+    <div>
+      <li>
+        <code> P_ec &lt;- 1-P_e # Prob. of NO Earthquake occurance</code>
+      </li>
+    </div>
+    <hr>
+    <div>
+      IN our scenario we have no earthquake ('Ec'), even though Michelle predicted one ('Mc').
+    </div>
+    <div>
+      <h2>P(Mc | Ec)</h2>
+    </div>
+    <div>
+      Resolving Bayes law we get:
+    </div>
+    <div>
+      <h3>P(Mc | Ec) = (P(Ec | Mc) * P(Mc)) / ((P(Ec | Mc) * P(Mc)) + ((P(Ec | M) * P(M))</h3>
+    </div>
+    <div>
+      M - Michelle Right, Mc - Michelle Wrong, E - Earthquake, Ec - NO Earthquake
+    </div>
+    <div>
+      <li>
+        <code># Calculating products of Posteriors</code>
+      </li>
+    </div>
+    <div>
+      <li>
+        <code>P_ec_mc &lt;- P_ec * P_mc</code>
+      </li>
+    </div>
+    <div>
+      <li>
+        <code>P_ec_m &lt;- P_ec * P_m</code>
+      </li>
+    </div>
+    <hr>
+    <div>
+      <li>
+        <code>#Calculating wanted probability</code>
+      </li>
+    </div>
+    <div>
+      <li>
+        <code>P_mc_ec &lt;- (P_ec_mc) / ((P_ec_mc) + (P_ec_m))</code>
+      </li>
+    </div>
+    <div>
+      <li>
+        <code>returnValue(P_mc_ec)</code>
+      </li>
+    </div>
+    <hr>
+    <div>
+      Would the probability of Michelle's prediction change with different Earthquake types? (i.e. different probabilities)
+    </div>
+    <div class="col-sm-4">
+      <form class="well">
+        <span class="help-block">Select Earthquake Probability</span>
+        <div class="form-group shiny-input-container">
+          <label class="control-label" for="num-selectized">Earthquake Probabilitty</label>
+          <div>
+            <select id="num" tabindex="-1" style="display: none;" class="selectized shiny-bound-input"><option value="10^-5" selected="selected">10^-5</option></select><div class="selectize-control single"><div class="selectize-input items full has-options has-items"><div class="item" data-value="10^-5">10^-5</div><input type="text" autocomplete="off" tabindex="" id="num-selectized" style="width: 4px;" class="shiny-bound-input"></div><div class="selectize-dropdown single" style="display: none;"><div class="selectize-dropdown-content"></div></div></div>
+            <script type="application/json" data-for="num" data-nonempty="">{}</script>
+          </div>
+        </div>
+        <div>
+          Probability: 0.05
+        </div>
+        <div id="selected_num" class="shiny-text-output shiny-bound-output">You selected  10^-5</div>
+      </form>
+    </div>
+  </div>
+
+
+
+</body></html>

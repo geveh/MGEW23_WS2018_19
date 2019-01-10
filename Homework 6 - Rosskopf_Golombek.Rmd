@@ -1,0 +1,162 @@
+---
+title: "Homework 6"
+author: "Nina Golombek & Martina Rosskopf"
+date: "16.12.2018"
+output: html_document
+runtime: shiny
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##Task
+Prepare a R Markdown-based Shiny app containing documented R code on the problem of learning the annual rate of GLOFs per year for an area with no observed events. Use an exponential prior, and compute the likelihood, and posterior. Make sure your exponential prior is such that a value of 5 or less is drawn with a probability of 95%. Please upload your commented script to the GitHub repository.			
+
+
+## Solution
+To run a Shiny App, we start the code with *library(shiny)*. Then we define our user interface (*ui*) with *ui <- fluidPage()*, followed by the title *titlePanel()*. With *sidebarLayout* you define the overall Layout, in our case you will have a smaller left panel and a bigger right Panel. With *sidebarPanel()* and *mainPanel()* you can set what will be shown in those panels. To adjust the values we use the function of the *sliderinputs*.
+
+For this exercise we set the following parameters as slider inputs:
+
+1) Time frame of observation [years] (here: 30, see task from last lecture)
+
+2) Number of observed GLOF events (Glacial Lake outburst floods) within a selected time frame
+
+3) Prior belief of G. on the GLOF rates (here: 5) 
+
+4) Propability of the Prior belief of G. (here: 95%)
+
+
+In order to use an exponential prior to compute the likelihood and posterior, we chose the **rexp** function which gives us a random generation for the exponential distribution. The quantile function (*$F_{\lambda}^{-1}$*) of an exponential distribution is characterized by the following equation (Source: https://de.wikipedia.org/wiki/Exponentialverteilung)
+
+$$F_{\lambda}^{-1} = \frac{-ln(1-p)}{\lambda}$$
+$F_{\lambda}^{-1}$: Prior belief of G. on the GLOF rates (here: 5)
+
+$\lambda$: rate of *rexp*
+
+p: probability of the Prior belief of G. (here: 0.95)
+
+
+Now solving this equation for $\lambda$ to determine the rate of our *rexp* function, we get the following equation
+
+$$\lambda = \frac{-ln(1-p)}{F_{\lambda}^{-1}} = \frac{-ln(0.05)}{5}$$
+
+The following formulas have been discussed in the last lecture including the density function of the exponential distribution (*dexp*). The Posterior can be estimated from the calulated Prior Probability and Likelihood. With the function of the Shiny app, it is easy to change the input values of G. without adjusting the entire script.
+
+```{r}
+library(shiny)
+# Define ui 
+ui <- fluidPage(
+  titlePanel("Annual rate of GLOFs per year for an area with no observed events"),
+  
+  
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("observ_P", 
+                  "Time frame of observation [years]", 
+                  min = 10, 
+                  max = 100,
+                  value = 30),                             # Given in the task during the lecture
+      
+      sliderInput("Nr_GLOFs", 
+                  "Number of observed GLOF events in time frame", 
+                  min = 0, 
+                  max = 100, 
+                  value = 0),                              # Given in task ("no observed events")
+      
+      sliderInput("Prior_Belief",
+                  "Prior belief of G. on the GLOF rates",
+                  min = 0,
+                  max = 30,
+                  value = 5),                              # Given in task 
+      sliderInput("Prior_Pro",
+                  "Propability of the Prior belief of G.",
+                  min = 0,
+                  max = 1,
+                  value = 0.95)                            # Given in task
+    ),
+
+# Show the plots of the generated distribution
+    mainPanel(
+      
+      plotOutput("prior"),
+      plotOutput("likelihood"),
+      plotOutput("posterior")    
+    )
+ )
+)
+
+
+server <- function(input, output){
+ 
+# Create an output plot for the Prior Probability
+   output$prior <- renderPlot({
+     
+# Set the Prior and the Prior Probability with quantile function
+    Lambda <- (-log( 1 - input$Prior_Pro ) / input$Prior_Belief )
+    Prior <- rexp(1000, rate = Lambda )
+    prior_prob <- (dexp( Prior, rate = Lambda )) / sum( dexp( Prior, rate = Lambda ) )   # re-normalize
+    
+    likelihood <- rep(NA, length(Prior))                 # create empty container for results with the length of prior
+    for(i in seq_along(Prior)) {
+      likelihood[i] <- prod(dpois((rep(input$Nr_GLOFs, input$observ_P)), Prior[i]))  # Likelihood is the product of indipendent propabilities
+    }
+    
+    Posterior <- (likelihood * prior_prob) / sum(likelihood * prior_prob)
+    
+    plot(Prior, prior_prob, 
+      type = "h", 
+      col = "red", 
+      xlab = "Prior", 
+      ylab = "Prior Probability",
+      cex.lab = 1.5, cex.main = 1.5)
+  })
+
+# Create an output plot for the Prior Likelihood  
+  output$likelihood <- renderPlot({
+    
+    Lambda <- (-log( 1 - input$Prior_Pro ) / input$Prior_Belief )
+    Prior <- rexp(1000, rate = Lambda)
+    prior_prob <- (dexp( Prior, rate = Lambda )) / sum( dexp( Prior, rate = Lambda ) )
+    
+    likelihood <- rep(NA, length(Prior))
+    for(i in seq_along(Prior)) {
+      likelihood[i] <- prod(dpois((rep(input$Nr_GLOFs, input$observ_P)), Prior[i]))
+    }
+    
+    Posterior <- (likelihood * prior_prob) / sum(likelihood * prior_prob)
+    
+    plot(Prior, likelihood, 
+      type = "h", 
+      col = "brown", 
+      xlab = "Prior", 
+      ylab = "Likelihood",
+      cex.lab = 1.5, cex.main = 1.5)
+  })
+
+  
+# Create an output plot for the Posterior
+  output$posterior <- renderPlot({
+
+    Lambda <- (-log( 1 - input$Prior_Pro ) / input$Prior_Belief )
+    Prior <- rexp(1000, rate = Lambda)
+    prior_prob <- (dexp( Prior, rate = Lambda )) / sum( dexp( Prior, rate = Lambda ) )
+    
+    likelihood <- rep(NA, length(Prior))
+    for(i in seq_along(Prior)) {
+      likelihood[i] <- prod(dpois((rep(input$Nr_GLOFs, input$observ_P)), Prior[i]))
+    }
+    
+    Posterior <- (likelihood * prior_prob) / sum(likelihood * prior_prob)
+    
+    plot(Prior, Posterior, 
+      type = "h", 
+      col = "blue", 
+      xlab = "Prior", 
+      ylab = "Posterior",
+    	cex.lab = 1.5, cex.main = 1.5)
+  })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+```

@@ -1,0 +1,197 @@
+---
+title: "Poisson distribution in Natural Hazards"
+author: "Rebecca Amberger and Nora Krebs"
+date: "3th December, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Task of the week
+
+Geoscience student Dave is working as a summer intern at a reinsurance company, where he takes telephone calls from people reporting damages from hailstorms. Assume that the callers do not know of each other and that Dave receives 13, 125, 98, 35, 27, 45, 45, 23, 11 and 14 during the first 10 weeks as an intern. Using the given data, what would be the mean rate of calls on the line?
+
+Take this example or generate your own, to learn via Bayes' Rule the mean rate of events from a set of data containing counts of these events. Plot the prior, likelihood, and posterior.
+
+
+## Bayes' Rule and the Poisson distribution
+
+As in previous examples we have to recall Bayes' theorem to solve the problem.
+
+$$P(k|D)=\frac{P(D|k)*P(k)}{P(D)}$$
+
+Bayes' theorem can literally be expressed as: 
+
+$$posterior=\frac{likelihood*prior}{evidence}$$
+In the given problem the incoming phone calls give the input for the prior part of the equation. The probability of incoming calls follows a Poisson distribution. 
+
+The theoretical equation for the Poisson distribution is the following:
+
+$$P(N=k|\lambda)=e^{-\lambda\frac{\lambda^k}{k!}}$$
+N=k expresses the number of success, while $\lambda$ refers to the rate of the occurring events and therefore also to the most likely expectation of the outcome.
+
+## Solution to the problem - equal rate probabilities
+
+```{r}
+
+# (1) Defining the prior:
+
+# First we have to define the prior input, which is the number of phone calls received by Dave in his first 10 # weeks.
+
+calls <- c(13, 125, 98, 35, 27, 45, 45, 23, 11, 14)
+
+# (2) Defining a range for the rate:
+
+# Second we have to come up with an initial believe of the range (of the number of calls) that gives a frame to
+# the rate, which has to be calculated. We think it is possible that Dave receives 1 up to 200 phone calls 
+# within one week.
+
+x <- 200
+prior_lambda <- 1:x
+
+# (3) Calculating the possibilities of the prior:
+
+# Third we have to assign a prior probability to each of the possible 200 outcomes. In this case we think that # each event (of Dave receiving 1, or 2, or 3, ..., or 200 calls) is equally likely by 1/200.
+
+prior_prob <- rep(1 / length(prior_lambda), length(prior_lambda))
+
+# To illustrate the prior, we want to plot the probability of each case.
+# In the plot one can notice how each number of phone calls is equally likely!
+
+plot(prior_prob, type = "h", main = "Prior",
+     xlab = "Weekly rate of phone calls", ylab = "Probability of phone calls")
+```
+
+```{r}
+# (4) Calculating the likelihood:
+
+# Fourth to calculate the distribution of the most likely rate, given the incoming number of calls, we have to 
+# compare the possibilities of each rate (between 1 and 200). 
+# We can do this by calculating the total probability of each event (each rate between 1 and 200), by
+# multiplying the possibilities within each outcome. 
+# More precisely explained by an example: by extracting all possibilities, that a given rate of 1 fits each 
+# single received call number (dpois(calls,1)), we can multiply the resulting probabilities to receive the 
+# overall probability of the case; continuing in the same way for a rate of 2, 3, ... and 200).
+# To do so, we first create an empty vector, where all the products can be stored in.
+
+likelihood <- rep(NA, length(prior_lambda))
+
+# To calculate the Poisson distribution for each rate individually, we use a loop. This will create a vector 
+# that contains all products for each possible rates (between 1 and 200), given the input number of received
+# calls.
+
+for (i in seq_along(prior_lambda)) {
+  likelihood[i] <- prod(dpois(calls, i))
+}
+
+# To illustrate the outcome of this step, we plot a graph that shows the calculated likelihood of each possible
+# rate.
+
+plot(likelihood, type = "h", main = "Likelihood",
+     xlab = "Weekly rate of phone calls", ylab = "Likelihood")
+```
+
+```{r}
+# (5) Calculating the posterior:
+
+# Now we want to calculate the posterior, using Bayes' theorem. Therefore we multiply the likelihood with the 
+# prior and divide the result by the evidence, where the evidence can be expressed by the sum of all possible
+# outcomes (renormalizing). 
+
+bayesnum <- likelihood * prior_prob
+bayesnum <- bayesnum / sum (bayesnum)
+
+# To illustrate our final results we want to plot the most likely rate of phone calls per week in a diagram.
+
+plot(bayesnum, type = "h", main = "Posterior",
+     xlab = "Weekly rate of phone calls", ylab = "Posterior Probability")
+
+# To see, which rate is most likely, we extract it by the "max()" command.
+which(c(bayesnum) == max (bayesnum))
+```
+
+## Solution of the problem with different rate probabilities
+
+To see how rates of different weight influence the outcome, we want to set the prior probabilities not to equal probabilities, but to different probabilities, that sum up to 1.
+
+To make the two results comparable, we decided to choose a different problem of natural hazards, but to use the same numbers as in the previous task ("Dave's phone calls"). 
+
+Our new problem of natural hazards is the following: 
+
+In Saxony, Germany, there exists a small village, called Rathen. From the 17th century up to the 20th century miners used to remantle sandstone rocks from the close insitu sandstone adjacent to the Elbe river bank. From the sandstone quarries, the rocks were transported to the close by metropoles (like Dresden or Potsdam), where the rulers in charge used them to construct residences and magnificent buildings. Since the demand of sandstones decreased over the years and the beautiful mountainous area of the Saxony Switzerland got recognized as a precious wild life reserve, the stone quarries got abandoned and are today incorporated into the "Elbsandstein"" National Park. Since the walls of the former sandstone quarries are too steep to support themselves, they are closed to visitors. Every day there are rocks falling down, which means a great danger to everyone in the proximities. 
+In our example a group of geology students from the University of Freiberg wants to visit the stone quarries of Rathen to study Cretaceous stratification. To predict the danger of such a field trip, professor Elicki has set up a seismometer at the quarry that records rock fall impacts for 10 days. From this rock fall input, he wants to calculate a likely number of rockfalls for the field trip day. He presumes that usually there are between 1 and 200 rock falls per day. Since the rock fall rate depends not only on the daily changing weather conditions, but also on the strength of the exposed sequence, he assumes different probabilities for each input rate.
+
+```{r}
+
+# (1) Defining the prior:
+
+# The prior consists now of a sequence of 10 different numbers of rock fall events, which occurred during the 
+# 10 days of measurements. 
+
+rocks <- c(13, 125, 98, 35, 27, 45, 45, 23, 11, 14)
+
+# (2) Defining a range for the rate:
+
+# Professor Elicki presumes that the rock fall rate might lie between 1 and 200.
+
+x <- 200
+prior_lambda <- 1:x
+
+# (3) Calculating the possibilities of the prior:
+
+# Since we want to assign a different probability to each rate, but want them to add up to 1, we create a 
+# vector of 200 different values that are weighted by the sum of those values.
+
+r <-runif(x, min = 0, max = 1)
+prior_prob <- r/sum(r)
+
+# To illustrate the prior, we want to plot the probability of each case.
+
+plot(prior_prob, type = "h", main = "Prior",
+     xlab = "Daily rate of rock fall", ylab = "Probability of rock fall rate")
+```
+
+```{r}
+# (4) Calculating the likelihood:
+
+# Now, to calculate the distribution of the most likely rate, given the incoming number of rock fall per day, 
+# we first create an empty vector.
+
+likelihood <- rep(NA, length(prior_lambda))
+
+# Now we again use a loop to create a vector with all probability products, using the Poisson distribution, 
+# given the input number of rock fall per day.
+
+for (i in seq_along(prior_lambda)) {
+  likelihood[i] <- prod(dpois(rocks, i))
+}
+
+# The following plot shows the calculated likelihood of each possible rate.
+
+plot(likelihood, type = "h", main = "Likelihood",
+     xlab = "Daily rate of rock fall", ylab = "Likelihood")
+```
+
+```{r}
+# (5) Calculating the posterior:
+
+# Finally we want to calculate the posterior, using Bayes' theorem. 
+# (we multiply the likelihood with the prior and divide the result by the evidence) 
+
+bayesnum <- likelihood * prior_prob
+bayesnum <- bayesnum / sum (bayesnum)
+
+# Our final outcome is illustrated in the following plot.
+
+plot(bayesnum, type = "h", main = "Posterior",
+     xlab = "Daily rate of rock fall", ylab = "Posterior Probability")
+
+# To see, which rate is most likely, we extract it by the "max()" command.
+which(c(bayesnum) == max (bayesnum))
+```
+
+## Conclusion
+
+If we now compare the resulting diagrams, it becomes obvious, that the discrete Gauss'-bell-like distribution of the posterior probability (with equal rate probabilities) is not that Gauss'-bell-like anymore if different rate probabilities are assumed. The resulting graphs are still very alike, but do not necessarily give the same output for the most likely rate. 

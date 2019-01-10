@@ -1,0 +1,113 @@
+---
+title: "Homework_4"
+author: "Andrea Hemmelmann - Eric Parra"
+date: "2 de diciembre de 2018"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Homework Nº4 - Bayes' Rule / Shiny app
+
+## Task
+
+Design and upload a Shiny App with R Markdown explaining Bayes’ Rule with an 
+example from the field of natural hazards and disasters. Use the interactive
+functions to allow different input values. Explain the example in your
+own words.
+
+### Example from the field of natural hazards and disaster
+
+Magician Michelle says that she can predict large megathrust earthquakes… well, 
+at least 95% of the time. Assume that these earthquakes occur with a probability 
+of 10−5. How likely will Michelle cause a false alarm with her next prediction?
+
+As in the last homework (Homework Nº3), this problem can be solve by using the 
+Bayes' Rule:
+
+Bayes' rule = p(H|D) = (p(D|H)) p(H)) / p(D)
+
+Where p(D)= (p(D|H)) p(H)) + (p(D|H_f)) p(H_o))
+
+E= A large megathrust earthquake occur
+p(E)= 0.00001
+NE=  A large megathrust earthquake does not occur
+p(NE)=0.99999
+M= Magician Michelle is right
+p(M)= 0.95
+NM= Michelle is wrong
+p(NM)= 0.05
+
+p(M|E)= (p(M)*p(E)) / p(M)*p(E)+ p(NM)*p(NE)
+
+As a result we obtained a probability (that Michelle is right) of 0.00019. This 
+result is very low because, although Michelle's percentage of success is 
+high, the probability of occurrence of a large megathrust earthquake is very low
+(0.0001)
+
+Therefore, the probability of Michelle is wrong (and then she cause a false 
+alarm) is 1 - 0.0019= 0.099981. 
+
+Now, we make a Shiny app in which it is possible to change the values of both
+the probability of occurrence of a large megathrust eartquake and/or the 
+reliability values in the Michelle's prediction.
+
+```{r}
+
+library(shiny)
+
+# First we lay out the user interface with an UI object (controls the layout and
+#appearence of app)
+
+ui <- fluidPage(
+  
+     # Application title
+   titlePanel("Probability of a large megathrust earthquake's false alarm based
+on the prediction of a magician"), 
+  
+# Sidebar
+   sidebarLayout(
+     sidebarPanel(
+       numericInput("E",
+                "Probability that a large megathrust earthquake occur",
+                min = 0,
+                max = 1,
+                value = 0.00001, #default value
+                step = 0.00001), #Interval to use when stepping between min 
+    #and max
+       
+       numericInput("M",
+                "Reliability of Michelle's prediction ",
+                     min = 0,
+                     max = 1,
+                     value = 0.95, #default value
+                     step = 0.05) #Interval to use when stepping between min 
+    #and max
+
+     ),
+   
+# Show the result in the main panel (right side of layout)
+      mainPanel(
+        textOutput(outputId = "NM") # output variable to read the value from
+      )
+   )
+)
+
+# Then, we defined the server function that contains instructions needed to 
+#build the app (it defines the relationship between inputs and outputs)
+
+server <- function(input, output){
+  
+  output$NM <- renderText({
+     NM <-(1-((input$M*input$E) / ((input$M*input$E)+(1-input$M*1-input$E))))
+   })
+}
+  
+#Finally, we called to the shiny app function
+
+shinyApp(ui = ui, server = server)
+  
+```
