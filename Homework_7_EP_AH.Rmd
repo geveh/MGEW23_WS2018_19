@@ -1,0 +1,126 @@
+---
+title: "Homework_7"
+author: "Andrea Hemmelmann - Eric Parra"
+date: "9 de enero de 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Homework 7  - Learning the mean diameter of a coastal boulder
+
+## Problem
+
+Prepare a R Markdown-based HTML file (groups of 2)
+containing documented R code on the problem of learning the mean diameter of
+a coastal boulder from Gaussian distributed measurements with a fixed 
+variance. Document and comment on your prior, likelihood, and posterior.
+
+A group of geoscience students use a tape to measure the long axis
+of a coral boulder stranded on a sandy beach. The students have
+collected n data points of the axis diameter x. We know that the
+tape measure is only accurate to a certain point, and assume, for
+the sake of simplicity, that all measurements come from the same
+Gaussian distribution. We express the spread of measurements with
+the distribution’s variance sigma𝜎.
+
+**Given n measurements, what is the boulder’s most believable actual size?**
+
+## Results
+
+### Prior
+
+As we saw in classes, first, we define the true mean𝜇 [m], which is the actu
+al diameter of the coral boulder’s long axis:
+
+```{r}
+mu <-  5.2 
+```
+
+Next. we define the known, constant variance 𝜎 sigma2[m2], which expresses t
+he accuracy of the tape measure:
+
+```{r}
+sig <-  0.1  
+```
+
+We then create n random data points from this distribution with
+rnorm(). Note that this command expects the standard deviation
+instead of the variance as an argument, so we need to take the
+square root of sig:
+
+```{r}
+
+n <- 10 # Number of observations
+
+dat <- rnorm(n, mu, sqrt(sig)) # Where "n" equal to number of observations; "mu" equal the true mean; "sig" equal to standar deviation.
+
+```
+
+Next, we plot a probability density estimate of the data:
+
+```{r}
+
+plot(density(dat), col = "chocolate", lwd = 2, main = "Random Gaussian data, known variance")
+
+```
+
+Next we  specify our prior on "mu", based on what we believe to be realistic for the maximum boulder diameter:
+
+```{r}
+
+prior_mu <- seq(4, 6, 0.1) #from our density plot
+
+```
+
+Here, we selected 22 evenly spaced values between  4 m and 6 m as
+potential candidates for (mu)𝜇. We now assign weights to each of these values, reflecting our initial belief about each candidate value. 
+
+So we choose instead random weights using the runif() command. 
+
+```{r}
+
+weights_mu<- runif(length(prior_mu)) # Set weights for prior values
+```
+
+Because the prior is a proper probability distribution, we need to
+make sure that all these weights add up to unity. The best way to
+guarantee this is to re-normalise so that all probability masses add up to unity
+
+
+```{r}
+
+p_mu <- weights_mu / sum(weights_mu)
+plot(prior_mu, p_mu, type= "h", col="red")
+     
+```
+
+## Likelihood
+
+For the likelihood we have to create a normal density function by using the variable "dat" and the standar deviation and the mean. This have to be done for each value of "prior_mu". In order to 
+calculate that we can use a "loop".
+
+**P.S.: We are still looking for a solution for the loop**
+
+For now we calculated the likelihood considering a mean value of "5.2"
+
+```{r}
+
+likeli <- prod(dnorm(dat, mean = 5.2 , sd = sqrt(sig)))
+
+```
+
+## Posterior
+
+The general way to calculate the posterior is to multiply the likelihood with the prior, as follow
+
+```{r}
+
+posterior= (likeli * prior_mu)
+
+```
+
+**P.S. We will calculate the posterior once we find a solution for the loop**
+
