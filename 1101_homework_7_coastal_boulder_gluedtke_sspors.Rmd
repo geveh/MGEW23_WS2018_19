@@ -1,0 +1,135 @@
+---
+title: "Bayes' Rule - Gaussian Distributed Measurements"
+author: "Gwendolin Lüdtke, Sina Spors"
+date: "08 January 2019"
+output:
+  html_document:
+    highlight: textmate
+    code_folding: show
+    theme: spacelab 
+    toc: true 
+    toc_float: 
+      collapsed: false 
+      smooth_scroll: true 
+      
+---
+<style>
+body {
+text-align: justify} 
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+*A group of geoscience students use a tape to measure the long axis of a coral boulder stranded on a sandy beach. The students have collected 'n' data points of the axis diameter 'x'. We know that the tape measure is only accurate to a certain point, and assume, for the sake of simplicity, that all measurements come from the same Gaussian distribution. We express the spread of measurements with the distribution's variance $\sigma^2$ (Gaussian distributed measurements with a fixed variance). Given n measurements, what is the boulder's most believable actual size?*
+
+# Gaussian Distribution
+
+In order to calculate the boulder's most believable actual size and to check how accurately we can recover the true mean from this sample, the **Bayes' Rule** is applied in combination with the **Gaussian or Normal distribution**. For the calculation of this probability distribution the mean $\mu$ and the standard deviation $\sigma$ (or variance $\sigma^2$) are needed. 
+
+We already know we true mean:
+```{r}
+# true mean of the boulder axis diameter
+mu <- 5.2
+```
+
+Moreover, the variance $\sigma^2$ (= accuracy of the tape measure) is known:
+
+```{r}
+# variance
+sig <- 0.1
+```
+
+In the next step, ```n``` random data points are created from this Gaussian distribution with the mean $\mu$ (= 5.2) and variance $\sigma^2$ (= 0.1) by using ```rnorm()```. For this function, the standard deviation $\sigma$ instead of the variance $\sigma^2$ must be used. 
+
+
+```{r}
+# measurements of the boulder diameter
+n <- 10
+dat <- rnorm (n, mu, sqrt(sig))
+
+hist(dat,
+     main = "Measurements of the boulder diameter",
+     xlab = "Diameter of the coral boulder's long axis") # ten measurements of the students
+```
+
+# Applying Bayes' Rule
+
+These data serve as a basis for recreating the most credible mean boulder diameter. The Bayes' Rule is used for that. In order to calculate the posterior (most believable means of boulder diameter), we have to define the prior and the likelihood.
+
+## Definition of Prior
+
+First of all, the prior (initial belief about the range of mean boulder diameter) has to be specified. The prior should come from prior knowledge (previous data) or another study but not from our data! Based on previous knowledge, values between 3.5 and 6 m were chosen.
+
+```{r}
+# prior belief
+# range of mean boulder diameter
+prior_mu <- seq(3.5, 6, 0.1)
+```
+
+Now each of these values is assigned a weighting, reflecting our initial belief about each candidate score. Assigning uniform weights to each of the 26 candidate agents is referred to as an unaware predecessor.
+That would be the easiest way. Instead, random weights are chosen to illustrate what influence the Bayes' Rule may have. This is guaranteed with the command ```runif()```. BUT, in general, this should be avoided by randomizing the weighting, as this obviously reflects any prior or expert knowledge.
+
+```{r}
+# creation of random weights
+weights_mu <- runif (length(prior_mu))
+
+
+# renormalise so that all probability masses add up to unity
+# prior probability
+p_mu <- weights_mu/sum(weights_mu)
+
+# plot of probability density function
+plot(p_mu ~ prior_mu, type ="h", 
+      xlab = "Prior belief", ylab = "Prior probability")
+```
+
+## Definition of Likelihood
+
+Now, we have to compute the likelihood of seeing these 'n' measurements. The Gaussian probability density of each measurement is calculated by using ```dnorm()```. The mean (prior believes) as well as the standard deviation of the Gaussian distribution defined before and our created data points ```dat``` as input values.While the data as well as the standard deviation remain constant, the mean must be changes according to ```prior_mu```. The probability densities or normal distribution for each ```prior_mu``` have to be multiplied since we assume independence of each data point. 
+
+
+```{r}
+# create a vector with the same number of entries as in "prior"
+likeli <- rep(NA, length(prior_mu))
+
+# using a loop for the calculation
+for (i in seq_along(prior_mu))
+                    {
+                      likeli[i] <- prod(dnorm(dat, mean = prior_mu[i] , sd = sqrt(sig)))
+                    }
+# plot likelihood
+plot(likeli~ prior_mu,typ="h",  
+      xlab = "Prior belief", ylab = "Likelihood")
+```
+
+
+## Posterior
+
+Finally, we multiply prior and likelihood and renormalize in order to calculate the posterior. 
+
+
+```{r}
+posterior <- likeli * p_mu
+
+posterior <- posterior / sum(posterior)
+
+# plot posterior
+plot(posterior~ prior_mu, type = "h", 
+     xlab = "Prior belief", ylab = "Posterior") 
+abline(v = 5.2, lty = 2, lwd = 2, col = "red")
+legend(3.5, 0.4, legend=c("", "given mean"),
+       col=c("red", "red"), lty=0:2, cex=0.8)
+
+# maximum posterior
+max <- prior_mu[which (posterior == max(posterior))]
+print(max)
+```
+
+Results show that the calculated most believable mean is close to the given mean.
+
+
+
+
