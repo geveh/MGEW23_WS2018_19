@@ -1,0 +1,73 @@
+---
+title: "Homework 7 - Coastal Boulders - Rosskopf_Golombek"
+author: "Nina Golombek & Martina Rosskopf"
+date: "10.01.2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Task
+Prepare a R Markdown-based HTML file containing documented R code on the problem of learning the mean diameter of a coastal boulder from Gaussian distributed measurements with a fixed variance. Document and comment on your prior, likelihood, and posterior. Please upload your commented script to the GitHub repository.
+
+## Problem
+A group of geoscience students use a tape to measure the long axis of a coastal boulder stranded on a sandy beach. The students have collected *n* data points of the axis diameter *x*. We know that the tape measure is only accurate to a certain point, and assume, for the sake of simplicity, that all measurements come from the same Gaussian distribution. We express the spread of measurements with the distribution's variance $\sigma^2$.
+Given *n* measurements, what is the boulders most believable actual size?
+
+## Solution
+
+As we have seen in the lecture the solution of this problem can be started by defining a true mean $\mu$. Therefore $\mu$ is the most creditiblediameter of the coastal boulders long axis. Furthermore, we define the known variance $\sigma$ of the Gaussian noise.
+The next step is to define *n* data points. We can use **rnorm()** for this to generate random deviates.
+```{r}
+mu <- 5.2    # true mean
+sig <- 0.1   # known variance of Gaussian noise
+n <- 10    # create n data points
+dat <- rnorm(n, mu, sqrt(sig))
+```
+
+The next step is to set a prior for $\mu$. This can be done by specifying a range, which could be realsitic for the maximum of the boulder diameter. Here we define 26 different cases which are between $3.5\,m$ and $6\,m$ with spaces of $0.1\,m$. Now we want to give each value a weight. In this case we use random weights by using the **runif()** function.
+To make sure that we have a proper probability distribution we have to re-normalise the selected prior, so the sum adds up to unity.
+
+```{r}
+prior_mu <- seq(3.5, 6, 0.1)                # range of prior values (coming from some previous data)
+weights_mu <- runif(length(prior_mu))       # random weights for prior values
+p_mu <- weights_mu / sum(weights_mu)        # re-normalization
+```
+
+To calculate the likelihood we have to use the product on the density functions. The density functions have to be calculated for each possible prior of $\mu$ and with the defined data points and the variance. To do so we used a *for loop* to go through the possible values of $\mu$ to calculate the likelihood.
+
+```{r}
+likeli <- rep(NA, length(prior_mu))
+for (i in 1:length(prior_mu)){
+  likeli[i] <- prod(dnorm(dat, mean = prior_mu[i], sd = sqrt(sig)))
+}
+```
+
+Now with the likelihood we can also calculate the posterior by multiplying the likelihood with the possible values of $\mu$ and re-normalising it. 
+
+
+```{r}
+posterior <- likeli * p_mu
+posterior <- posterior / sum(posterior)
+```
+
+
+## Results
+
+The results for our calculations are shown in the following plots
+```{r}
+par(mfrow = c(3, 1))
+plot(prior_mu, p_mu, type = "h", col = "darkblue", lwd = 2,
+     xlab = "Prior Diameter",
+     ylab = "Prior Probability")
+plot(prior_mu, likeli, type = "h", col = "red", lwd = 2,
+     xlab = "Prior Diameter",
+     ylab = "Likelihood")
+plot(prior_mu, posterior, type = "h", col = "darkgreen", lwd = 2,
+    xlab = "Prior Diameter",
+    ylab = "Posterior Probability")
+```
+
+By looking at the results we can see that the **most possible size of the boulder** would be **close to 5.2**.
