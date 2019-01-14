@@ -1,0 +1,100 @@
+---
+title: "Mean Boulder Size"
+author: "Jan Kärstens"
+date: "11.1.2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem
+
+This weeks problem deals with a group of Geoscientists taking axis sizes of boulders. Since we do not have any certain measured values, we are looking the most believable mean size (µ) of the boulders.Given is only the variance (&sigma;² = 0.1).
+
+***
+In a first approach we just set a defined mean (µ = mu) and define the variance (sig).
+Next step is the creation of 10 random values of axis sizes around the mean value (mu) with a deviation of &radic;&sigma;. 
+
+```{r}
+#Highest possibility for mean (value) is wanted
+# Define true mean 'mu' of Gaussian
+mu <-5.2
+#Set known variance of Gaussian noise
+sig <-0.1
+# Create 'n' data points with mean "mu", sqrt of sig, because sigma is deviation^2
+n <- 10
+dat <-rnorm(n, mu,sqrt(sig))
+```
+
+In order to get a proper probability distribution we have to define a prior ("prior_mu"). For possible boulder sizes we choose a range from 3.5 to 6 with a stepsize 0.1 (&sigma;). These prior values all have different probabilities and are therefore weighted randomly ("weights_mu"). These weight values have to be normalized again under "p_mu" amd are multiplied with their priors ("prior").
+
+```{r}
+# Set range of prior values
+prior_mu <-seq(3.5, 6, 0.1)
+# Set weights for prior values
+weights_mu <-runif(length(prior_mu))
+# Renormalise prior (to obtain a PDF)
+p_mu <-weights_mu/ sum(weights_mu)
+#Calculate Prior (weights * prior sequence)
+prior <- p_mu * prior_mu
+```
+
+Following this we have to find a likelihood for each possible value. We define "likeli"" - a vector to store the results in with the same size as the priors. The likelihoods are also computed in the same range as the priors and calculated with R in a for-loop with a stepsize of 0.1 (&sigma;). The likelihood function is the product of the densitiy of the caculated values ("dat") and the given mean (which ranges from 3.5 to 6) with a deviation of &radic;&sigma;.
+
+```{r}
+#For Loop for Likelihood
+likeli <- c(seq(3.5, 6, 0.1))
+
+a <- 1
+for(i in seq(from=3.5, to=6, by=0.1)){
+  likeli[a] <- prod(dnorm(dat, mean = i, sd = sqrt(sig)))
+  a <- a + 1
+}
+```
+
+
+Now we are interested in the boulder size which is the most likeli one:
+```{r}
+#Return max likelihood and for which boulder size it appears
+max(likeli)
+print(which.max(likeli)*0.1+3.4)
+```
+
+Following this we multiply the priors with the likelihoods and normalize the product with the sum of all likelihoods.
+
+```{r}
+
+#Likelihood * prior (weighted)
+post <- prior * likeli
+#NormaLIZING post
+post <- post / sum(likeli)
+```
+
+
+Last but not least we can plot our calculated values.
+The first graph shows the prior-range and their randomly assigned weights on the y-axis. The second graph displays the likelihoods of the calculated different boulder mean sizes and shows already, that only a certain range of mean boulder sizes will very likeli.
+The last graph shows the finally calculated mean boulder size of the product of likelihood and prior, normalized to the sum of the likelihoods.
+
+```{r}
+#Plotting multiple graphs at once (3 graphs on 1 page)
+par(mfrow = c(3, 1))
+
+#graph plotten: plot(x,y,...) = plot(y ~ x, ...)
+plot(prior_mu,p_mu, type = 'h', col = 'red', main = "Prior")
+
+#Plot likelihoods over mean
+plot(seq(3.5, 6, 0.1),likeli,col ="chocolate", type = "l", lwd =2,main ="Likelihood")
+
+
+#Plotting
+plot(seq(3.5, 6, 0.1),post,col ="blue", type = "l", lwd =2,main ="Possibility of Boulder Size")
+```
+
+
+#Result
+Outcome is the most possible mean boulder size which lays inbetween 5.1 and 5.4, depending on the randomly caulated "measured" values of the prior. In this case:
+```{r}
+print(which.max(likeli)*0.1+3.4)
+```
