@@ -1,0 +1,194 @@
+---
+title: "Homework_6"
+author: "Andrea Hemmelmann - Eric Parra"
+date: "16 de diciembre de 2018"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Homework Nº6 - Learning the annual rate of GLOFs for an area with no observed events
+
+## Task
+
+Prepare a R Markdown-based Shiny app containing documented R code on the problem of learning the annual rate of GLOFs per year for an area with no observed events. Use an exponential prior, and compute the likelihood, and posterior. Make sure your exponential prior is such that a value of 5 or less is drawn with a probability of 95%.
+
+- Experiment by decreasing the step width in the exponential prior distribution on lambda𝜆. What can you say about the nonzero probability of 𝜆lambda? 
+
+- Can you think of a way to improve our accuracy of the posterior estimate of lambda?
+
+- Assume that G. is 95% certain that the average GLOF rate in any Asian mountain belt is five per year at the most. How does this affect the posterior estimate?
+
+### Data
+
+Time of observations (years) = 30 years
+
+GLOFs count = number of events in the study period = 0
+
+Prior believe of G. (count of GLOFs) = 5
+
+Certainty of G. belief = 95%
+
+We can solve this problem by using the follwings ecuations:
+
+Bayes' rule ecuation
+
+Bayes' rule = p(H|D) = (p(D|H)) p(H)) / p(D)
+Where p(D)= (p(D|H)) p(H)) + (p(D|H_f)) p(H_o))
+Posterior= (Likelihood*Prior)/Evidence
+
+We are working with an exponential distribution, so in order to calculate lambda, 
+we know the quantile function of an exponential distribution 
+(which is the inverse cumulative distribution function):
+
+$$ Quantile = \frac{ -ln(1-p) }{ \lambda } $$
+So we can calculate $\lambda$ for any value of the prior belief and certainty of it.
+
+$  \lambda = \frac{ -ln(1-p) }{ Quantile } $
+
+## Results
+
+### Shiny app
+
+```{r}
+
+# Creating the Shiny app
+
+library(shiny)
+
+# Defining an UI
+
+ui <- fluidPage(
+  
+     # Application title
+  
+   titlePanel("Learning the annual rate of GLOFs for an area with no observed events"), 
+  
+# Sidebar
+   sidebarLayout(
+     sidebarPanel(
+       sliderInput("Time",
+                "Time of observations (years)",
+                min = 0,
+                max = 50,
+                value = 30, # default value
+                step = 1), # Interval to use when stepping between min 
+    #and max
+       
+       sliderInput("Glof_acc",
+                "GLOFs observed",
+                     min = 0,
+                     max = 50,
+                     value = 1, # default value
+                     step = 1), # Interval to use when stepping between min 
+    #and max
+        
+       sliderInput("Prior_B",
+                "Prior believe",
+                     min = 0,
+                     max = 30,
+                     value = 5, #default value
+                     step = 1), #Interval to use when stepping between min 
+    #and max
+
+       sliderInput("PPB",
+                "Probability of prior believe",
+                     min = 0,
+                     max = 1,
+                     value = 0.95, #default value
+                     step = 0.01) #Interval to use when stepping between min 
+    #and max
+       
+     ),
+    
+# Show the result in the main panel (right side of layout)
+
+      mainPanel(
+        plotOutput("Prior_p"), # output variable to read the value from
+        plotOutput("Likelihood"), # output variable to read the value from
+        plotOutput("Posterior") # output variable to read the value from
+      )
+   )
+)
+
+# Then, we defined the server function that contains instructions needed to 
+#build the app (it defines the relationship between inputs and outputs)
+
+server <- function(input, output){
+  
+#Prior
+  
+output$Prior_p <- renderPlot({
+  
+lambda <- (-log(1- input$PPB) / input$Prior_B )
+Prior<- rexp(10000, rate=lambda) 
+Prior_p<- (dexp( Prior, rate = lambda )) /sum( dexp( Prior, rate = lambda ))
+
+plot(Prior, Prior_p)
+
+})
+    
+# Likelihood 
+    
+lambda <- (-log(1- input$PPB) / input$Prior_B )
+Prior<- rexp(10000, rate=lambda) 
+Prior_p<- (dexp( Prior, rate = lambda )) /sum( dexp( Prior, rate = lambda ))
+
+
+output$Likelihood <- renderPlot({
+Likelihood <- rep(NA, length(Prior))  
+for (i in seq_along(Prior)){
+Likelihood[i] <- prod(dpois((rep(input$Glof_acc, input$Time)), Prior[i]))
+
+  }
+  
+  #Prior
+  
+    lambda <- (-log( 1-input$PPB ) / input$Prior_B )
+    Prior<- rexp(10000, rate=lambda) 
+    Prior_p<- dexp(Prior, rate= lambda) 
+    Prior_p <- Prior_p/sum(Prior_p)
+    
+    #Posterior
+    
+Likelihood <- rep(NA, length(Prior))  
+for (i in seq_along(Prior)){
+Likelihood[i] <- prod(dpois((rep(input$Glof_acc, input$Time)), Prior[i]))
+    
+Posterior <- (Likelihood* Prior_p)/sum(Likelihood*Prior_p)
+}
+
+plot(Prior, Likelihood)
+})
+
+  # Posterior
+
+lambda <- (-log(1- input$PPB) / input$Prior_B )
+Prior<- rexp(10000, rate=lambda) 
+Prior_p<- (dexp( Prior, rate = lambda )) /sum( dexp( Prior, rate = lambda ))
+
+Likelihood <- rep(NA, length(Prior))  
+for (i in seq_along(Prior)){
+Likelihood[i] <- prod(dpois((rep(input$Glof_acc, input$Time)), Prior[i]))
+  
+output$Posterior <- renderPlot({
+Posterior <- (Likelihood* Prior_p)/sum(Likelihood*Prior_p)
+
+})  
+
+}
+
+plot(Prior, Posterior)
+ 
+}
+
+#Finally, we called to the shiny app function
+
+shinyApp(ui = ui, server = server)
+
+```
+
+Unfortunately, the Shiny App did not work, so we are looking for a solution.
